@@ -1,11 +1,9 @@
-/* Copyright 2000-2005 The Apache Software Foundation or its licensors, as
- * applicable.
- *
- * Copyright 2004 Paul Querna
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -273,6 +271,11 @@ static apr_status_t conn_connect(apr_memcache_conn_t *conn)
     }
 
     rv = apr_socket_connect(conn->sock, sa);
+    if (rv != APR_SUCCESS) {
+        return rv;
+    }
+
+    rv = apr_socket_timeout_set(conn->sock, -1);
     if (rv != APR_SUCCESS) {
         return rv;
     }
@@ -1332,10 +1335,10 @@ apr_memcache_multgetp(apr_memcache_t *mc,
            }
            else if (strncmp(MS_END, conn->buffer, MS_END_LEN) == 0) {
                /* this connection is done */
+               apr_pollset_remove (pollset, &activefds[i]);
                ms_release_conn(ms, conn);
                apr_hash_set(server_queries, &ms, sizeof(ms), NULL);
                
-               apr_pollset_remove (pollset, &activefds[i]);
                queries_sent--;
            }
            else {

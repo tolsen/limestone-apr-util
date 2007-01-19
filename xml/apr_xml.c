@@ -1,9 +1,9 @@
-/* Copyright 2000-2005 The Apache Software Foundation or its licensors, as
- * applicable.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -25,10 +25,14 @@
 
 #include "apu_config.h"
 
-#ifdef APR_HAVE_OLD_EXPAT
-#include "xmlparse.h"
+#if defined(HAVE_XMLPARSE_XMLPARSE_H)
+#include <xmlparse/xmlparse.h>
+#elif defined(HAVE_XMLTOK_XMLPARSE_H)
+#include <xmltok/xmlparse.h>
+#elif defined(HAVE_XML_XMLPARSE_H)
+#include <xml/xmlparse.h>
 #else
-#include "expat.h"
+#include <expat.h>
 #endif
 
 #define DEBUG_CR "\r\n"
