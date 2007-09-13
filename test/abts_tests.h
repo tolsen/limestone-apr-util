@@ -32,7 +32,14 @@ const struct testlist {
     {testmd5},
     {testldap},
     {testdbd},
-    {testdaterfc}
+    {testdate},
+    {testmemcache},
+    {testreslist},
+    {testqueue},
+    {testxml},
+    {testxlate},
+    {testrmm},
+    {testdbm}
 };
 
 #endif /* APR_TEST_INCLUDES */

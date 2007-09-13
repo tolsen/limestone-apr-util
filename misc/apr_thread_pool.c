@@ -233,6 +233,7 @@ static void *APR_THREAD_FUNC thread_pool_func(apr_thread_t * t, void *param)
         while (NULL != task && !me->terminated) {
             elt->current_owner = task->owner;
             apr_thread_mutex_unlock(me->lock);
+            apr_thread_data_set(task, "apr_thread_pool_task", NULL, t);
             task->func(t, task->param);
             apr_thread_mutex_lock(me->lock);
             APR_RING_INSERT_TAIL(me->recycled_tasks, task,
@@ -294,7 +295,7 @@ static apr_status_t thread_pool_cleanup(void *me)
     return APR_SUCCESS;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_pool_create(apr_thread_pool_t ** me,
+APU_DECLARE(apr_status_t) apr_thread_pool_create(apr_thread_pool_t ** me,
                                                  apr_size_t init_threads,
                                                  apr_size_t max_threads,
                                                  apr_pool_t * pool)
@@ -329,7 +330,7 @@ APR_DECLARE(apr_status_t) apr_thread_pool_create(apr_thread_pool_t ** me,
     return rv;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_pool_destroy(apr_thread_pool_t * me)
+APU_DECLARE(apr_status_t) apr_thread_pool_destroy(apr_thread_pool_t * me)
 {
     return apr_pool_cleanup_run(me->pool, me, thread_pool_cleanup);
 }
@@ -414,7 +415,7 @@ static apr_thread_pool_task_t *add_if_empty(apr_thread_pool_t * me,
 *   schedule a task to run in "time" milliseconds. Find the spot in the ring where
 *   the time fits. Adjust the short_time so the thread wakes up when the time is reached.
 */
-static apr_status_t schedule_task(apr_thread_pool_t * me,
+static apr_status_t schedule_task(apr_thread_pool_t *me,
                                   apr_thread_start_t func, void *param,
                                   void *owner, apr_interval_time_t time)
 {
@@ -463,7 +464,7 @@ static apr_status_t schedule_task(apr_thread_pool_t * me,
     return rv;
 }
 
-static apr_status_t add_task(apr_thread_pool_t * me, apr_thread_start_t func,
+static apr_status_t add_task(apr_thread_pool_t *me, apr_thread_start_t func,
                              void *param, apr_byte_t priority, int push,
                              void *owner)
 {
@@ -516,7 +517,7 @@ static apr_status_t add_task(apr_thread_pool_t * me, apr_thread_start_t func,
     return rv;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_pool_push(apr_thread_pool_t * me,
+APU_DECLARE(apr_status_t) apr_thread_pool_push(apr_thread_pool_t *me,
                                                apr_thread_start_t func,
                                                void *param,
                                                apr_byte_t priority,
@@ -525,7 +526,7 @@ APR_DECLARE(apr_status_t) apr_thread_pool_push(apr_thread_pool_t * me,
     return add_task(me, func, param, priority, 1, owner);
 }
 
-APR_DECLARE(apr_status_t) apr_thread_pool_schedule(apr_thread_pool_t * me,
+APU_DECLARE(apr_status_t) apr_thread_pool_schedule(apr_thread_pool_t *me,
                                                    apr_thread_start_t func,
                                                    void *param,
                                                    apr_interval_time_t time,
@@ -534,7 +535,7 @@ APR_DECLARE(apr_status_t) apr_thread_pool_schedule(apr_thread_pool_t * me,
     return schedule_task(me, func, param, owner, time);
 }
 
-APR_DECLARE(apr_status_t) apr_thread_pool_top(apr_thread_pool_t * me,
+APU_DECLARE(apr_status_t) apr_thread_pool_top(apr_thread_pool_t *me,
                                               apr_thread_start_t func,
                                               void *param,
                                               apr_byte_t priority,
@@ -543,7 +544,7 @@ APR_DECLARE(apr_status_t) apr_thread_pool_top(apr_thread_pool_t * me,
     return add_task(me, func, param, priority, 0, owner);
 }
 
-static apr_status_t remove_scheduled_tasks(apr_thread_pool_t * me,
+static apr_status_t remove_scheduled_tasks(apr_thread_pool_t *me,
                                            void *owner)
 {
     apr_thread_pool_task_t *t_loc;
@@ -564,7 +565,7 @@ static apr_status_t remove_scheduled_tasks(apr_thread_pool_t * me,
     return APR_SUCCESS;
 }
 
-static apr_status_t remove_tasks(apr_thread_pool_t * me, void *owner)
+static apr_status_t remove_tasks(apr_thread_pool_t *me, void *owner)
 {
     apr_thread_pool_task_t *t_loc;
     apr_thread_pool_task_t *next;
@@ -592,15 +593,21 @@ static apr_status_t remove_tasks(apr_thread_pool_t * me, void *owner)
     return APR_SUCCESS;
 }
 
-static void wait_on_busy_threads(apr_thread_pool_t * me, void *owner)
+static void wait_on_busy_threads(apr_thread_pool_t *me, void *owner)
 {
+#ifndef NDEBUG
+    apr_os_thread_t *os_thread;
+#endif
     struct apr_thread_list_elt *elt;
     apr_thread_mutex_lock(me->lock);
     elt = APR_RING_FIRST(me->busy_thds);
     while (elt != APR_RING_SENTINEL(me->busy_thds, apr_thread_list_elt, link)) {
+        if (elt->current_owner != owner) {
+            elt = APR_RING_NEXT(elt, link);
+            continue;
+        }
 #ifndef NDEBUG
         /* make sure the thread is not the one calling tasks_cancel */
-        apr_os_thread_t *os_thread;
         apr_os_thread_get(&os_thread, elt->thd);
 #ifdef WIN32
         /* hack for apr win32 bug */
@@ -609,10 +616,6 @@ static void wait_on_busy_threads(apr_thread_pool_t * me, void *owner)
         assert(!apr_os_thread_equal(apr_os_thread_current(), *os_thread));
 #endif
 #endif
-        if (elt->current_owner != owner) {
-            elt = APR_RING_NEXT(elt, link);
-            continue;
-        }
         while (elt->current_owner == owner) {
             apr_thread_mutex_unlock(me->lock);
             apr_sleep(200 * 1000);
@@ -624,7 +627,7 @@ static void wait_on_busy_threads(apr_thread_pool_t * me, void *owner)
     return;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_pool_tasks_cancel(apr_thread_pool_t * me,
+APU_DECLARE(apr_status_t) apr_thread_pool_tasks_cancel(apr_thread_pool_t *me,
                                                        void *owner)
 {
     apr_status_t rv = APR_SUCCESS;
@@ -642,33 +645,33 @@ APR_DECLARE(apr_status_t) apr_thread_pool_tasks_cancel(apr_thread_pool_t * me,
     return rv;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_tasks_count(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_tasks_count(apr_thread_pool_t *me)
 {
     return me->task_cnt;
 }
 
-APR_DECLARE(apr_size_t)
-    apr_thread_pool_scheduled_tasks_count(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t)
+    apr_thread_pool_scheduled_tasks_count(apr_thread_pool_t *me)
 {
     return me->scheduled_task_cnt;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_threads_count(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_threads_count(apr_thread_pool_t *me)
 {
     return me->thd_cnt;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_busy_count(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_busy_count(apr_thread_pool_t *me)
 {
     return me->thd_cnt - me->idle_cnt;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_idle_count(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_idle_count(apr_thread_pool_t *me)
 {
     return me->idle_cnt;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_idle_max_get(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_idle_max_get(apr_thread_pool_t *me)
 {
     return me->idle_max;
 }
@@ -678,8 +681,8 @@ APR_DECLARE(apr_size_t) apr_thread_pool_idle_max_get(apr_thread_pool_t * me)
  * @return the number of threads stopped
  * NOTE: There could be busy threads become idle during this function
  */
-static struct apr_thread_list_elt *trim_threads(apr_thread_pool_t * me,
-                                                apr_size_t * cnt, int idle)
+static struct apr_thread_list_elt *trim_threads(apr_thread_pool_t *me,
+                                                apr_size_t *cnt, int idle)
 {
     struct apr_thread_list *thds;
     apr_size_t n, n_dbg, i;
@@ -727,7 +730,7 @@ static struct apr_thread_list_elt *trim_threads(apr_thread_pool_t * me,
     return head;
 }
 
-static apr_size_t trim_idle_threads(apr_thread_pool_t * me, apr_size_t cnt)
+static apr_size_t trim_idle_threads(apr_thread_pool_t *me, apr_size_t cnt)
 {
     apr_size_t n_dbg;
     struct apr_thread_list_elt *elt;
@@ -753,13 +756,13 @@ static apr_size_t trim_idle_threads(apr_thread_pool_t * me, apr_size_t cnt)
 /* don't join on busy threads for performance reasons, who knows how long will
  * the task takes to perform
  */
-static apr_size_t trim_busy_threads(apr_thread_pool_t * me, apr_size_t cnt)
+static apr_size_t trim_busy_threads(apr_thread_pool_t *me, apr_size_t cnt)
 {
     trim_threads(me, &cnt, 0);
     return cnt;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_idle_max_set(apr_thread_pool_t * me,
+APU_DECLARE(apr_size_t) apr_thread_pool_idle_max_set(apr_thread_pool_t *me,
                                                      apr_size_t cnt)
 {
     me->idle_max = cnt;
@@ -767,7 +770,7 @@ APR_DECLARE(apr_size_t) apr_thread_pool_idle_max_set(apr_thread_pool_t * me,
     return cnt;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_thread_max_get(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_thread_max_get(apr_thread_pool_t *me)
 {
     return me->thd_max;
 }
@@ -776,7 +779,7 @@ APR_DECLARE(apr_size_t) apr_thread_pool_thread_max_get(apr_thread_pool_t * me)
  * This function stop extra working threads to the new limit.
  * NOTE: There could be busy threads become idle during this function
  */
-APR_DECLARE(apr_size_t) apr_thread_pool_thread_max_set(apr_thread_pool_t * me,
+APU_DECLARE(apr_size_t) apr_thread_pool_thread_max_set(apr_thread_pool_t *me,
                                                        apr_size_t cnt)
 {
     unsigned int n;
@@ -797,12 +800,12 @@ APR_DECLARE(apr_size_t) apr_thread_pool_thread_max_set(apr_thread_pool_t * me,
     return n;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_threshold_get(apr_thread_pool_t * me)
+APU_DECLARE(apr_size_t) apr_thread_pool_threshold_get(apr_thread_pool_t *me)
 {
     return me->threshold;
 }
 
-APR_DECLARE(apr_size_t) apr_thread_pool_threshold_set(apr_thread_pool_t * me,
+APU_DECLARE(apr_size_t) apr_thread_pool_threshold_set(apr_thread_pool_t *me,
                                                       apr_size_t val)
 {
     apr_size_t ov;
@@ -810,6 +813,28 @@ APR_DECLARE(apr_size_t) apr_thread_pool_threshold_set(apr_thread_pool_t * me,
     ov = me->threshold;
     me->threshold = val;
     return ov;
+}
+
+APU_DECLARE(apr_status_t) apr_thread_pool_task_owner_get(apr_thread_t *thd,
+                                                         void **owner)
+{
+    apr_status_t rv;
+    apr_thread_pool_task_t *task;
+    void *data;
+
+    rv = apr_thread_data_get(&data, "apr_thread_pool_task", thd);
+    if (rv != APR_SUCCESS) {
+        return rv;
+    }
+
+    task = data;
+    if (!task) {
+        *owner = NULL;
+        return APR_BADARG;
+    }
+
+    *owner = task->owner;
+    return APR_SUCCESS;
 }
 
 #endif /* APR_HAS_THREADS */

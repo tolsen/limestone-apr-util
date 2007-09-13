@@ -148,8 +148,20 @@ static apr_status_t mc_version_ping(apr_memcache_server_t *ms);
 APR_DECLARE(apr_memcache_server_t *) 
 apr_memcache_find_server_hash(apr_memcache_t *mc, const apr_uint32_t hash)
 {
+    if (mc->server_func) {
+        return mc->server_func(mc->server_baton, mc, hash);
+    }
+    else {
+        return apr_memcache_find_server_hash_default(NULL, mc, hash);
+    }
+}   
+
+APR_DECLARE(apr_memcache_server_t *) 
+apr_memcache_find_server_hash_default(void *baton, apr_memcache_t *mc,
+                                      const apr_uint32_t hash)
+{
     apr_memcache_server_t *ms = NULL;
-    apr_uint32_t h = hash;
+    apr_uint32_t h = hash ? hash : 1;
     apr_uint32_t i = 0;
     apr_time_t curtime = 0;
    
@@ -408,6 +420,10 @@ APR_DECLARE(apr_status_t) apr_memcache_create(apr_pool_t *p,
     mc->nalloc = max_servers;
     mc->ntotal = 0;
     mc->live_servers = apr_palloc(p, mc->nalloc * sizeof(struct apr_memcache_server_t *));
+    mc->hash_func = NULL;
+    mc->hash_baton = NULL;
+    mc->server_func = NULL;
+    mc->server_baton = NULL;
     *memcache = mc;
     return rv;
 }
@@ -486,16 +502,40 @@ static const apr_uint32_t crc32tab[256] = {
   0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 };
 
-APR_DECLARE(apr_uint32_t) apr_memcache_hash(const char *data, const apr_size_t data_len)
+APR_DECLARE(apr_uint32_t) apr_memcache_hash_crc32(void *baton, 
+                                                    const char *data,
+                                                    const apr_size_t data_len)
 {
     apr_uint32_t i;
     apr_uint32_t crc;
     crc = ~0;
-
+    
     for (i = 0; i < data_len; i++)
         crc = (crc >> 8) ^ crc32tab[(crc ^ (data[i])) & 0xff];
-  
-    return ((~crc >> 16) & 0x7fff);
+    
+    return ~crc;
+}
+
+APR_DECLARE(apr_uint32_t) apr_memcache_hash_default(void *baton, 
+                                                    const char *data,
+                                                    const apr_size_t data_len)
+{
+    /* The default Perl Client doesn't actually use just crc32 -- it shifts it again
+     * like this....
+     */
+    return ((apr_memcache_hash_crc32(baton, data, data_len) >> 16) & 0x7fff);
+}
+
+APR_DECLARE(apr_uint32_t) apr_memcache_hash(apr_memcache_t *mc,
+                                            const char *data,
+                                            const apr_size_t data_len)
+{
+    if (mc->hash_func) {
+        return mc->hash_func(mc->hash_baton, data, data_len);
+    }
+    else {
+        return apr_memcache_hash_default(NULL, data, data_len);
+    }
 }
 
 static apr_status_t get_server_line(apr_memcache_conn_t *conn)
@@ -540,7 +580,7 @@ static apr_status_t storage_cmd_write(apr_memcache_t *mc,
 
     apr_size_t key_size = strlen(key);
 
-    hash = apr_memcache_hash(key, key_size);
+    hash = apr_memcache_hash(mc, key, key_size);
 
     ms = apr_memcache_find_server_hash(mc, hash);
 
@@ -667,7 +707,7 @@ apr_memcache_getp(apr_memcache_t *mc,
     int klen = strlen(key);
     struct iovec vec[3];
 
-    hash = apr_memcache_hash(key, klen);
+    hash = apr_memcache_hash(mc, key, klen);
     ms = apr_memcache_find_server_hash(mc, hash);
     if (ms == NULL)
         return APR_NOTFOUND;
@@ -797,7 +837,7 @@ apr_memcache_delete(apr_memcache_t *mc,
     struct iovec vec[3];
     int klen = strlen(key);
 
-    hash = apr_memcache_hash(key, klen);
+    hash = apr_memcache_hash(mc, key, klen);
     ms = apr_memcache_find_server_hash(mc, hash);
     if (ms == NULL)
         return APR_NOTFOUND;
@@ -866,7 +906,7 @@ static apr_status_t num_cmd_write(apr_memcache_t *mc,
     struct iovec vec[3];
     int klen = strlen(key);
 
-    hash = apr_memcache_hash(key, klen);
+    hash = apr_memcache_hash(mc, key, klen);
     ms = apr_memcache_find_server_hash(mc, hash);
     if (ms == NULL)
         return APR_NOTFOUND;
@@ -1134,7 +1174,7 @@ apr_memcache_multgetp(apr_memcache_t *mc,
         value_hash_index = apr_hash_next(value_hash_index);
         klen = strlen(value->key);
 
-        hash = apr_memcache_hash(value->key, klen);
+        hash = apr_memcache_hash(mc, value->key, klen);
         ms = apr_memcache_find_server_hash(mc, hash);
         if (ms == NULL) {
             continue;
@@ -1388,6 +1428,9 @@ apr_memcache_multgetp(apr_memcache_t *mc,
 #define STAT_version MS_STAT " version "
 #define STAT_version_LEN (sizeof(STAT_version)-1)
 
+#define STAT_pointer_size MS_STAT " pointer_size "
+#define STAT_pointer_size_LEN (sizeof(STAT_pointer_size)-1)
+
 #define STAT_rusage_user MS_STAT " rusage_user "
 #define STAT_rusage_user_LEN (sizeof(STAT_rusage_user)-1)
 
@@ -1424,6 +1467,9 @@ apr_memcache_multgetp(apr_memcache_t *mc,
 #define STAT_get_misses MS_STAT " get_misses "
 #define STAT_get_misses_LEN (sizeof(STAT_get_misses)-1)
 
+#define STAT_evictions MS_STAT " evictions "
+#define STAT_evictions_LEN (sizeof(STAT_evictions)-1)
+
 #define STAT_bytes_read MS_STAT " bytes_read "
 #define STAT_bytes_read_LEN (sizeof(STAT_bytes_read)-1)
 
@@ -1433,6 +1479,8 @@ apr_memcache_multgetp(apr_memcache_t *mc,
 #define STAT_limit_maxbytes MS_STAT " limit_maxbytes "
 #define STAT_limit_maxbytes_LEN (sizeof(STAT_limit_maxbytes)-1)
 
+#define STAT_threads MS_STAT " threads "
+#define STAT_threads_LEN (sizeof(STAT_threads)-1)
 
 static const char *stat_read_string(apr_pool_t *p, char *buf, int len)
 {
@@ -1523,6 +1571,7 @@ static void update_stats(apr_pool_t *p, apr_memcache_conn_t *conn,
     mc_do_stat(version, str)
     else mc_do_stat(pid, uint32)
     else mc_do_stat(uptime, uint32)
+    else mc_do_stat(pointer_size, uint32)
     else mc_do_stat(time, time)
     else mc_do_stat(rusage_user, rtime)
     else mc_do_stat(rusage_system, rtime)
@@ -1536,9 +1585,11 @@ static void update_stats(apr_pool_t *p, apr_memcache_conn_t *conn,
     else mc_do_stat(cmd_set, uint32)
     else mc_do_stat(get_hits, uint32)
     else mc_do_stat(get_misses, uint32)
+    else mc_do_stat(evictions, uint64)
     else mc_do_stat(bytes_read, uint64)
     else mc_do_stat(bytes_written, uint64)
     else mc_do_stat(limit_maxbytes, uint32)
+    else mc_do_stat(threads, uint32)
 }
 
 APR_DECLARE(apr_status_t)

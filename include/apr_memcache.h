@@ -74,15 +74,39 @@ struct apr_memcache_server_t
     apr_time_t btime;
 };
 
+/* Custom hash callback function prototype, user for server selection.
+* @param baton user selected baton
+* @param data data to hash
+* @param data_len length of data
+*/
+typedef apr_uint32_t (*apr_memcache_hash_func)(void *baton,
+                                               const char *data,
+                                               apr_size_t data_len);
+
+typedef struct apr_memcache_t apr_memcache_t;
+
+/* Custom Server Select callback function prototype.
+* @param baton user selected baton
+* @param mc memcache instance, use mc->live_servers to select a node
+* @param hash hash of the selected key.
+*/
+typedef apr_memcache_server_t* (*apr_memcache_server_func)(void *baton,
+                                                 apr_memcache_t *mc,
+                                                 const apr_uint32_t hash);
+
 /** Container for a set of memcached servers */
-typedef struct
+struct apr_memcache_t
 {
     apr_uint32_t flags; /**< Flags, Not currently used */
     apr_uint16_t nalloc; /**< Number of Servers Allocated */
     apr_uint16_t ntotal; /**< Number of Servers Added */
     apr_memcache_server_t **live_servers; /**< Array of Servers */
     apr_pool_t *p; /** Pool to use for allocations */
-} apr_memcache_t;
+    void *hash_baton;
+    apr_memcache_hash_func hash_func;
+    void *server_baton;
+    apr_memcache_server_func server_func;
+};
 
 /** Returned Data from a multiple get */
 typedef struct
@@ -101,7 +125,23 @@ typedef struct
  * @return crc32 hash of data
  * @remark The crc32 hash is not compatible with old memcached clients.
  */
-APR_DECLARE(apr_uint32_t) apr_memcache_hash(const char *data, apr_size_t data_len);
+APR_DECLARE(apr_uint32_t) apr_memcache_hash(apr_memcache_t *mc,
+                                            const char *data,
+                                            apr_size_t data_len);
+
+/**
+ * Pure CRC32 Hash. Used by some clients.
+ */
+APR_DECLARE(apr_uint32_t) apr_memcache_hash_crc32(void *baton,
+                                                    const char *data,
+                                                    apr_size_t data_len);
+
+/**
+ * hash compatible with the standard Perl Client.
+ */
+APR_DECLARE(apr_uint32_t) apr_memcache_hash_default(void *baton,
+                                                    const char *data,
+                                                    apr_size_t data_len);
 
 /**
  * Picks a server based on a hash
@@ -112,6 +152,14 @@ APR_DECLARE(apr_uint32_t) apr_memcache_hash(const char *data, apr_size_t data_le
  */
 APR_DECLARE(apr_memcache_server_t *) apr_memcache_find_server_hash(apr_memcache_t *mc, 
                                                                    const apr_uint32_t hash);
+
+/**
+ * server selection compatible with the standard Perl Client.
+ */
+APR_DECLARE(apr_memcache_server_t *)
+apr_memcache_find_server_hash_default(void *baton,
+                                      apr_memcache_t *mc, 
+                                      const apr_uint32_t hash);
 
 /**
  * Adds a server to a client object
@@ -339,6 +387,8 @@ typedef struct
     apr_uint32_t uptime;
     /** current UNIX time according to the server */
     apr_time_t time;
+    /** The size of a pointer on the current machine */
+    apr_uint32_t pointer_size;
     /** Accumulated user time for this process */
     apr_time_t rusage_user;
     /** Accumulated system time for this process */
@@ -363,12 +413,17 @@ typedef struct
     apr_uint32_t get_hits;
     /** Number of items that have been requested and not found */
     apr_uint32_t get_misses;
+    /** Number of items removed from cache because they passed their
+        expiration time */
+    apr_uint64_t evictions;
     /** Total number of bytes read by this server */
     apr_uint64_t bytes_read;
     /** Total number of bytes sent by this server */
     apr_uint64_t bytes_written;
     /** Number of bytes this server is allowed to use for storage. */
     apr_uint32_t limit_maxbytes;
+    /** Number of threads the server is running (if built with threading) */
+    apr_uint32_t threads; 
 } apr_memcache_stats_t;
 
 /**
