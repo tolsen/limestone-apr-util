@@ -14,32 +14,37 @@
  * limitations under the License.
  */
 
-#ifndef APR_TEST_INCLUDES
-#define APR_TEST_INCLUDES
+/* 
+ * Note: This is a NetWare specific version of apu_config.hnw. It is copied
+ * as apu_config.h at the start of a NetWare build.
+ */
 
-#include "abts.h"
-#include "testutil.h"
+#ifdef NETWARE
 
-const struct testlist {
-    abts_suite *(*func)(abts_suite *suite);
-} alltests[] = {
-    {teststrmatch},
-    {testuri},
-    {testuuid},
-    {testbuckets},
-    {testpass},
-    {testmd4},
-    {testmd5},
-    {testldap},
-    {testdbd},
-    {testdate},
-    {testmemcache},
-    {testxml},
-    {testxlate},
-    {testrmm},
-    {testdbm},
-    {testqueue},
-    {testreslist}
-};
+#ifndef APU_CONFIG_H
+#define APU_CONFIG_H
 
-#endif /* APR_TEST_INCLUDES */
+/*
+ * NetWare does not have GDBM, and we always use the bundled (new) Expat
+ */
+
+/* Define if you have the gdbm library (-lgdbm). */
+/* #undef HAVE_LIBGDBM */
+
+/* define if Expat 1.0 or 1.1 was found */
+/* #undef APR_HAVE_OLD_EXPAT */
+
+/* NetWare uses its own ICONV implementation. */
+#define HAVE_ICONV_H 1
+
+/*
+ * check for newer NDKs which use now correctly 'const char*' with iconv.
+ */
+#include <ndkvers.h>
+#if (CURRENT_NDK_THRESHOLD >= 705110000)
+#define APU_ICONV_INBUF_CONST
+#endif
+
+#endif /* APU_CONFIG_H */
+#endif /* NETWARE */
+

@@ -91,6 +91,8 @@
 
 #define CHECK_CONN_QUERY "SELECT 1 FROM dual"
 
+#define ERR_BUF_SIZE 200
+
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -141,7 +143,7 @@ struct apr_dbd_t {
     OCISession *auth;
     apr_dbd_transaction_t* trans;
     apr_pool_t *pool;
-    char buf[200];        /* for error messages */
+    char buf[ERR_BUF_SIZE]; /* for error messages */
     apr_size_t long_size;
     apr_dbd_prepared_t *check_conn_stmt;
 };
@@ -437,10 +439,11 @@ static void dbd_oracle_init(apr_pool_t *pool)
 #endif
 }
 
-static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
+static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params,
+                                  const char **error)
 {
     apr_dbd_t *ret = apr_pcalloc(pool, sizeof(apr_dbd_t));
-    int_errorcode;
+    int errorcode;
 
     char *BLANK = "";
     struct {
@@ -466,6 +469,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
 
     /* snitch parsing from the MySQL driver */
     for (ptr = strchr(params, '='); ptr; ptr = strchr(ptr, '=')) {
+        /* don't dereference memory that may not belong to us */
+        if (ptr == params) {
+            ++ptr;
+            continue;
+        }
         for (key = ptr-1; isspace(*key); --key);
         klen = 0;
         while (isalpha(*key)) {
@@ -514,6 +522,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (alloc svr): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -530,6 +543,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (alloc svc): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -550,6 +568,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR: %s\n", ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -566,6 +589,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (server attach): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -581,6 +609,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (attr set): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -596,6 +629,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (alloc auth): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -611,6 +649,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (attr username): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -626,6 +669,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (attr password): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -641,6 +689,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
         printf("OPEN ERROR %d (session begin): %s\n", ret->status, ret->buf);
         break;
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
     case OCI_SUCCESS:
@@ -655,6 +708,11 @@ static apr_dbd_t *dbd_oracle_open(apr_pool_t *pool, const char *params)
                     sizeof(ret->buf), OCI_HTYPE_ERROR);
         printf("OPEN ERROR %d (attr session): %s\n", ret->status, ret->buf);
 #else
+        if (error) {
+            *error = apr_pcalloc(pool, ERR_BUF_SIZE);
+            OCIErrorGet(ret->err, 1, NULL, &errorcode, (unsigned char*)(*error),
+                        ERR_BUF_SIZE, OCI_HTYPE_ERROR);
+        }
         return NULL;
 #endif
         break;
@@ -1048,11 +1106,12 @@ static int outputParams(apr_dbd_t *sql, apr_dbd_prepared_t *stmt)
 {
     OCIParam *parms;
     int i;
-    int_errorcode;
     ub2 paramtype[DBD_ORACLE_MAX_COLUMNS];
     ub2 paramsize[DBD_ORACLE_MAX_COLUMNS];
     const char *paramname[DBD_ORACLE_MAX_COLUMNS];
     ub4 paramnamelen[DBD_ORACLE_MAX_COLUMNS];
+    int_errorcode;
+
     /* Perl uses 0 where we used 1 */
     sql->status = OCIStmtExecute(sql->svc, stmt->stmt, sql->err, 0, 0,
                                  NULL, NULL, OCI_DESCRIBE_ONLY);
@@ -1196,11 +1255,11 @@ static int dbd_oracle_pquery(apr_pool_t *pool, apr_dbd_t *sql,
                              int *nrows, apr_dbd_prepared_t *statement,
                              const char **values)
 {
-    int_errorcode;
     OCISnapshot *oldsnapshot = NULL;
     OCISnapshot *newsnapshot = NULL;
     apr_dbd_transaction_t* trans = sql->trans;
     int exec_mode;
+    int_errorcode;
 
     if (trans) {
         switch (trans->status) {
@@ -1281,6 +1340,7 @@ static int dbd_oracle_pselect(apr_pool_t *pool, apr_dbd_t *sql,
     OCISnapshot *oldsnapshot = NULL;
     OCISnapshot *newsnapshot = NULL;
     apr_dbd_transaction_t* trans = sql->trans;
+    int_errorcode;
 
     if (trans) {
         switch (trans->status) {
@@ -1307,7 +1367,6 @@ static int dbd_oracle_pselect(apr_pool_t *pool, apr_dbd_t *sql,
     sql->status = OCIStmtExecute(sql->svc, statement->stmt, sql->err, 0, 0,
                                  oldsnapshot, newsnapshot, exec_mode);
     switch (sql->status) {
-    int_errorcode;
     case OCI_SUCCESS:
         break;
     case OCI_ERROR:
@@ -1583,11 +1642,11 @@ static int dbd_oracle_pbquery(apr_pool_t * pool, apr_dbd_t * sql,
                               int *nrows, apr_dbd_prepared_t * statement,
                               const void **values)
 {
-    int_errorcode;
     OCISnapshot *oldsnapshot = NULL;
     OCISnapshot *newsnapshot = NULL;
     apr_dbd_transaction_t* trans = sql->trans;
     int exec_mode;
+    int_errorcode;
 
     if (trans) {
         switch (trans->status) {
@@ -1668,6 +1727,7 @@ static int dbd_oracle_pbselect(apr_pool_t * pool, apr_dbd_t * sql,
     OCISnapshot *oldsnapshot = NULL;
     OCISnapshot *newsnapshot = NULL;
     apr_dbd_transaction_t* trans = sql->trans;
+    int_errorcode;
 
     if (trans) {
         switch (trans->status) {
@@ -1694,7 +1754,6 @@ static int dbd_oracle_pbselect(apr_pool_t * pool, apr_dbd_t * sql,
     sql->status = OCIStmtExecute(sql->svc, statement->stmt, sql->err, 0, 0,
                                  oldsnapshot, newsnapshot, exec_mode);
     switch (sql->status) {
-    int_errorcode;
     case OCI_SUCCESS:
         break;
     case OCI_ERROR:
@@ -1865,7 +1924,6 @@ static int dbd_oracle_transaction_mode_set(apr_dbd_transaction_t *trans,
  */
 static const char *dbd_oracle_get_entry(const apr_dbd_row_t *row, int n)
 {
-    int_errorcode;
     ub4 len = 0;
     ub1 csform = 0;
     ub2 csid = 0;
@@ -1873,6 +1931,7 @@ static const char *dbd_oracle_get_entry(const apr_dbd_row_t *row, int n)
     char *buf = NULL;
     define_arg *val = &row->res->statement->out[n];
     apr_dbd_t *sql = row->res->handle;
+    int_errorcode;
 
     if ((n < 0) || (n >= row->res->statement->nout) || (val->ind == -1)) {
         return NULL;

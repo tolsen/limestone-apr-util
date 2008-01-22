@@ -36,19 +36,19 @@ static apr_hash_t *drivers = NULL;
 
 #if APR_HAS_THREADS
 static apr_thread_mutex_t* mutex = NULL;
-apr_status_t apr_dbd_mutex_lock()
+APU_DECLARE(apr_status_t) apr_dbd_mutex_lock()
 {
     return apr_thread_mutex_lock(mutex);
 }
-apr_status_t apr_dbd_mutex_unlock()
+APU_DECLARE(apr_status_t) apr_dbd_mutex_unlock()
 {
     return apr_thread_mutex_unlock(mutex);
 }
 #else
-apr_status_t apr_dbd_mutex_lock() {
+APU_DECLARE(apr_status_t) apr_dbd_mutex_lock() {
     return APR_SUCCESS;
 }
-apr_status_t apr_dbd_mutex_unlock() {
+APU_DECLARE(apr_status_t) apr_dbd_mutex_unlock() {
     return APR_SUCCESS;
 }
 #endif
@@ -183,21 +183,32 @@ unlock:
 
     return rv;
 }
-APU_DECLARE(apr_status_t) apr_dbd_open(const apr_dbd_driver_t *driver,
-                                       apr_pool_t *pool, const char *params,
-                                       apr_dbd_t **handle)
+APU_DECLARE(apr_status_t) apr_dbd_open_ex(const apr_dbd_driver_t *driver,
+                                          apr_pool_t *pool, const char *params,
+                                          apr_dbd_t **handle,
+                                          const char **error)
 {
     apr_status_t rv;
-    *handle = (driver->open)(pool, params);
+    *handle = (driver->open)(pool, params, error);
     if (*handle == NULL) {
         return APR_EGENERAL;
     }
     rv = apr_dbd_check_conn(driver, pool, *handle);
     if ((rv != APR_SUCCESS) && (rv != APR_ENOTIMPL)) {
+        /* XXX: rv is APR error code, but apr_dbd_error() takes int! */
+        if (error) {
+            *error = apr_dbd_error(driver, *handle, rv);
+        }
         apr_dbd_close(driver, *handle);
         return APR_EGENERAL;
     }
     return APR_SUCCESS;
+}
+APU_DECLARE(apr_status_t) apr_dbd_open(const apr_dbd_driver_t *driver,
+                                       apr_pool_t *pool, const char *params,
+                                       apr_dbd_t **handle)
+{
+    return apr_dbd_open_ex(driver,pool,params,handle,NULL);
 }
 APU_DECLARE(int) apr_dbd_transaction_start(const apr_dbd_driver_t *driver,
                                            apr_pool_t *pool, apr_dbd_t *handle,

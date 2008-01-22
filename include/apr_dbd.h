@@ -105,12 +105,13 @@ APU_DECLARE(apr_status_t) apr_dbd_init(apr_pool_t *pool);
 APU_DECLARE(apr_status_t) apr_dbd_get_driver(apr_pool_t *pool, const char *name,
                                              const apr_dbd_driver_t **driver);
 
-/** apr_dbd_open: open a connection to a backend
+/** apr_dbd_open_ex: open a connection to a backend
  *
  *  @param pool - working pool
  *  @param params - arguments to driver (implementation-dependent)
  *  @param handle - pointer to handle to return
  *  @param driver - driver struct.
+ *  @param error - descriptive error.
  *  @return APR_SUCCESS for success
  *  @return APR_EGENERAL if driver exists but connection failed
  *  @remarks PostgreSQL: the params is passed directly to the PQconnectdb()
@@ -125,13 +126,33 @@ APU_DECLARE(apr_status_t) apr_dbd_get_driver(apr_pool_t *pool, const char *name,
  *  keys, each followed by an equal sign and a value. Such key/value pairs can
  *  be delimited by space, CR, LF, tab, semicolon, vertical bar or comma.
  *  @remarks MySQL: the params can have "host", "port", "user", "pass",
- *  "dbname", "sock", "flags" and "fldsz" keys, each followed by an equal sign
- *  and a value. Such key/value pairs can be delimited by space, CR, LF, tab,
- *  semicolon, vertical bar or comma. For now, "flags" can only recognise
- *  CLIENT_FOUND_ROWS (check MySQL manual for details). The value associated
- *  with "fldsz" determines maximum amount of memory (in bytes) for each of
- *  the fields in the result set of prepared statements. By default, this
- *  value is 1 MB.
+ *  "dbname", "sock", "flags" "fldsz" and "group" keys, each followed by an
+ *  equal sign and a value. Such key/value pairs can be delimited by space,
+ *  CR, LF, tab, semicolon, vertical bar or comma. For now, "flags" can only
+ *  recognise CLIENT_FOUND_ROWS (check MySQL manual for details). The value
+ *  associated with "fldsz" determines maximum amount of memory (in bytes) for
+ *  each of the fields in the result set of prepared statements. By default,
+ *  this value is 1 MB. The value associated with "group" determines which
+ *  group from configuration file to use (see MYSQL_READ_DEFAULT_GROUP option
+ *  of mysql_options() in MySQL manual).
+ *  @remarks FreeTDS: the params can have "username", "password", "appname",
+ *  "dbname", "host", "charset", "lang" and "server" keys, each followed by an
+ *  equal sign and a value.
+ */
+APU_DECLARE(apr_status_t) apr_dbd_open_ex(const apr_dbd_driver_t *driver,
+                                          apr_pool_t *pool, const char *params,
+                                          apr_dbd_t **handle,
+                                          const char **error);
+
+/** apr_dbd_open: open a connection to a backend
+ *
+ *  @param pool - working pool
+ *  @param params - arguments to driver (implementation-dependent)
+ *  @param handle - pointer to handle to return
+ *  @param driver - driver struct.
+ *  @return APR_SUCCESS for success
+ *  @return APR_EGENERAL if driver exists but connection failed
+ *  @see apr_dbd_open_ex
  */
 APU_DECLARE(apr_status_t) apr_dbd_open(const apr_dbd_driver_t *driver,
                                        apr_pool_t *pool, const char *params,

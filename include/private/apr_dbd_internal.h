@@ -62,10 +62,12 @@ struct apr_dbd_driver_t {
      *  a lifetime other than a request
      *
      *  @param pool - a pool to use for error messages (if any).
-     *  @param s - server rec managing the underlying connection/pool.
+     *  @param params - connection parameters.
+     *  @param error - descriptive error.
      *  @return database handle, or NULL on error.
      */
-    apr_dbd_t *(*open)(apr_pool_t *pool, const char *params);
+    apr_dbd_t *(*open)(apr_pool_t *pool, const char *params,
+                       const char **error);
 
     /** check_conn: check status of a database connection
      *
@@ -350,8 +352,8 @@ struct apr_dbd_driver_t {
 };
 
 /* Export mutex lock/unlock for drivers that need it */
-apr_status_t apr_dbd_mutex_lock(void);
-apr_status_t apr_dbd_mutex_unlock(void);
+APU_DECLARE(apr_status_t) apr_dbd_mutex_lock(void);
+APU_DECLARE(apr_status_t) apr_dbd_mutex_unlock(void);
 
 #ifdef __cplusplus
 }

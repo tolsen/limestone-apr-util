@@ -28,7 +28,6 @@
 #define NUMBER_PRODUCERS    4
 #define PRODUCER_ACTIVITY   5
 #define QUEUE_SIZE          100
-#define SLEEP_TIME          30
 
 static apr_queue_t *queue;
 
@@ -42,14 +41,15 @@ static void * APR_THREAD_FUNC consumer(apr_thread_t *thd, void *data)
     sleeprate = 1000000/CONSUMER_ACTIVITY;
     apr_sleep((rand() % 4) * 1000000); /* sleep random seconds */
 
-    while (1) {
+    while (1)
+    {
         rv = apr_queue_pop(queue, &v);
 
-        if (rv == APR_EINTR) {
+        if (rv == APR_EINTR)
             continue;
-        } else if (rv == APR_EOF) {
+
+        if (rv == APR_EOF)
             break;
-        }
 
         ABTS_TRUE(tc, v == NULL);
         ABTS_TRUE(tc, rv == APR_SUCCESS);
@@ -63,19 +63,23 @@ static void * APR_THREAD_FUNC consumer(apr_thread_t *thd, void *data)
 static void * APR_THREAD_FUNC producer(apr_thread_t *thd, void *data)
 {
     long sleeprate;
+    abts_case *tc = data;
     apr_status_t rv;
 
     sleeprate = 1000000/PRODUCER_ACTIVITY;
     apr_sleep((rand() % 4) * 1000000); /* sleep random seconds */
 
-    while (1) {
-        do {
-            rv = apr_queue_push(queue, NULL);
-        } while (rv == APR_EINTR);
+    while (1)
+    {
+        rv = apr_queue_push(queue, NULL);
 
-        if (rv == APR_EOF) {
+        if (rv == APR_EINTR)
+            continue;
+
+        if (rv == APR_EOF)
             break;
-        }
+
+        ABTS_TRUE(tc, rv == APR_SUCCESS);
 
         apr_sleep(sleeprate); /* sleep this long to acheive our rate */
     }
@@ -93,28 +97,28 @@ static void test_queue_producer_consumer(abts_case *tc, void *data)
     srand((unsigned int)apr_time_now());
 
     rv = apr_queue_create(&queue, QUEUE_SIZE, p);
-    ABTS_INT_EQUAL(tc, rv, APR_SUCCESS);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
 
     rv = apr_thread_pool_create(&thrp, 0, NUMBER_CONSUMERS + NUMBER_PRODUCERS, p);
-    ABTS_INT_EQUAL(tc, rv, APR_SUCCESS);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
 
     for (i = 0; i < NUMBER_CONSUMERS; i++) {
         rv = apr_thread_pool_push(thrp, consumer, tc, 0, NULL);
-        ABTS_INT_EQUAL(tc, rv, APR_SUCCESS);
+        ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
     }
 
     for (i = 0; i < NUMBER_PRODUCERS; i++) {
         rv = apr_thread_pool_push(thrp, producer, tc, 0, NULL);
-        ABTS_INT_EQUAL(tc, rv, APR_SUCCESS);
+        ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
     }
 
-    apr_sleep(SLEEP_TIME * 1000000); /* sleep 10 seconds */
+    apr_sleep(5000000); /* sleep 5 seconds */
 
     rv = apr_queue_term(queue);
-    ABTS_INT_EQUAL(tc, rv, APR_SUCCESS);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
 
     rv = apr_thread_pool_destroy(thrp);
-    ABTS_INT_EQUAL(tc, rv, APR_SUCCESS);
+    ABTS_INT_EQUAL(tc, APR_SUCCESS, rv);
 }
 
 #endif /* APR_HAS_THREADS */

@@ -1064,7 +1064,8 @@ static int dbd_mysql_transaction_mode_set(apr_dbd_transaction_t *trans,
     return trans->mode = (mode & TXN_MODE_BITS);
 }
 
-static apr_dbd_t *dbd_mysql_open(apr_pool_t *pool, const char *params)
+static apr_dbd_t *dbd_mysql_open(apr_pool_t *pool, const char *params,
+                                 const char **error)
 {
     static const char *const delims = " \r\n\t;|,";
     const char *ptr;
@@ -1091,6 +1092,7 @@ static apr_dbd_t *dbd_mysql_open(apr_pool_t *pool, const char *params)
         {"sock", NULL},
         {"flags", NULL},
         {"fldsz", NULL},
+        {"group", NULL},
         {NULL, NULL}
     };
     unsigned int port = 0;
@@ -1101,6 +1103,11 @@ static apr_dbd_t *dbd_mysql_open(apr_pool_t *pool, const char *params)
         return NULL;
     }
     for (ptr = strchr(params, '='); ptr; ptr = strchr(ptr, '=')) {
+        /* don't dereference memory that may not belong to us */
+        if (ptr == params) {
+            ++ptr;
+            continue;
+        }
         for (key = ptr-1; isspace(*key); --key);
         klen = 0;
         while (isalpha(*key)) {
@@ -1134,6 +1141,9 @@ static apr_dbd_t *dbd_mysql_open(apr_pool_t *pool, const char *params)
     if (fields[7].value != NULL) {
         sql->fldsz = atol(fields[7].value);
     }
+    if (fields[8].value != NULL) {
+         mysql_options(sql->conn, MYSQL_READ_DEFAULT_GROUP, fields[8].value);
+    }
 
 #if MYSQL_VERSION_ID >= 50013
     /* the MySQL manual says this should be BEFORE mysql_real_connect */
@@ -1146,6 +1156,9 @@ static apr_dbd_t *dbd_mysql_open(apr_pool_t *pool, const char *params)
                                    fields[5].value, flags);
 
     if(real_conn == NULL) {
+        if (error) {
+            *error = apr_pstrdup(pool, mysql_error(sql->conn));
+        }
         mysql_close(sql->conn);
         return NULL;
     }
@@ -1215,6 +1228,8 @@ static apr_status_t thread_end(void *data)
 static void dbd_mysql_init(apr_pool_t *pool)
 {
     my_init();
+    mysql_thread_init();
+   
     /* FIXME: this is a guess; find out what it really does */ 
     apr_pool_cleanup_register(pool, NULL, thread_end, apr_pool_cleanup_null);
 }

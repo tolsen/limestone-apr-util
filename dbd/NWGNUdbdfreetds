@@ -26,10 +26,10 @@ endif
 # LINK_STATIC = 1
 
 # for now defined here - should finally go into build/NWGNUenvironment.inc
-SQLITE2_INC = $(SQLITE2SDK)/src
-SQLITE2_IMP = $(SQLITE2SDK)/lsqlite2.imp
-SQLITE2_LIB = $(SQLITE2SDK)/lsqlite2.lib
-SQLITE2_NLM = lsqlite2
+FREETDS_INC = $(FREETDSSDK)/include
+FREETDS_IMP = $(FREETDSSDK)/lib/libfreetds.imp
+FREETDS_LIB = $(FREETDSSDK)/lib/libfreetds.lib
+FREETDS_NLM = libfreetds
 
 #
 # These directories will be at the beginning of the include list, followed by
@@ -41,7 +41,7 @@ XINCDIRS	+= \
 			$(APRUTIL)/include \
 			$(APRUTIL)/include/private \
 			$(APR) \
-			$(SQLITE2_INC) \
+			$(FREETDS_INC) \
 			$(EOLIST)
 
 #
@@ -54,7 +54,7 @@ XCFLAGS		+= \
 # These defines will come after DEFINES
 #
 XDEFINES	+= \
-			-DAPU_HAVE_SQLITE2=1 \
+			-DAPU_HAVE_FREETDS=1 \
 			$(EOLIST)
 
 #
@@ -65,7 +65,7 @@ XLFLAGS		+= \
 
 ifdef LINK_STATIC
 XLFLAGS		+= \
-			-l $(SQLITE2SDK) \
+			-l $(FREETDSSDK)/lib \
 			$(EOLIST)
 endif
 
@@ -120,19 +120,19 @@ endif
 # This is used by the link 'name' directive to name the nlm.  If left blank
 # TARGET_nlm (see below) will be used.
 #
-NLM_NAME	= dbdsqli2
+NLM_NAME	= dbdfreetds
 
 #
 # This is used by the link '-desc ' directive.
 # If left blank, NLM_NAME will be used.
 #
-NLM_DESCRIPTION	= Apache Portability Runtime Library $(VERSION_STR) DBD SQLite2 Driver Module
+NLM_DESCRIPTION	= Apache Portability Runtime Library $(VERSION_STR) DBD FreeTDS Driver Module
 
 #
 # This is used by the '-threadname' directive.  If left blank,
 # NLM_NAME Thread will be used.
 #
-NLM_THREAD_NAME	= dbdsqli2
+NLM_THREAD_NAME	= dbdfreetds
 
 #
 # If this is specified, it will override VERSION value in
@@ -191,7 +191,7 @@ TARGET_lib = \
 # Paths must all use the '/' character
 #
 FILES_nlm_objs = \
-	$(OBJDIR)/apr_dbd_sqlite2.o \
+	$(OBJDIR)/apr_dbd_freetds.o \
 	$(EOLIST)
 
 #
@@ -204,7 +204,7 @@ FILES_nlm_libs = \
 
 ifeq ($(LINK_STATIC),1)
 FILES_nlm_libs += \
-	$(SQLITE2_LIB) \
+	$(FREETDS_LIB) \
 	$(EOLIST)
 endif
 
@@ -219,7 +219,7 @@ FILES_nlm_modules = \
 
 ifneq ($(LINK_STATIC),1)
 FILES_nlm_modules += \
-	$(SQLITE2_NLM) \
+	$(FREETDS_NLM) \
 	$(EOLIST)
 endif
 
@@ -248,7 +248,7 @@ FILES_nlm_Ximports = \
 
 ifneq ($(LINK_STATIC),1)
 FILES_nlm_Ximports += \
-	@$(SQLITE2_IMP) \
+	@$(FREETDS_IMP) \
 	$(EOLIST)
 endif
 
@@ -256,7 +256,7 @@ endif
 # Any symbols exported to here
 #
 FILES_nlm_exports = \
-	apr_dbd_sqlite2_driver \
+	apr_dbd_freetds_driver \
 	$(EOLIST)
 
 #

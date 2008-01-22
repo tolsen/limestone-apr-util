@@ -101,7 +101,7 @@
 
 /*
  * For ldap function calls that input a size limit on the number of returned elements
- * Some SDKs do not have the define for LDAP_DEFAULT_LIMIT (‑1) or LDAP_NO_LIMIT (0)
+ * Some SDKs do not have the define for LDAP_DEFAULT_LIMIT (-1) or LDAP_NO_LIMIT (0)
  */
 #if APR_HAS_ZOS_LDAPSDK
 #define APR_LDAP_SIZELIMIT LDAP_NO_LIMIT
@@ -154,6 +154,7 @@ typedef struct apr_ldap_err_t {
 #include "apr_ldap_url.h"
 #include "apr_ldap_init.h"
 #include "apr_ldap_option.h"
+#include "apr_ldap_rebind.h"
 
 /** @} */
 #endif /* APR_HAS_LDAP */

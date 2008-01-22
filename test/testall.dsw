@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "apr"="..\apr\apr.dsp" - Package Owner=<4>
+Project: "apr"="..\..\apr\apr.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "aprapp"="..\apr\build\aprapp.dsp" - Package Owner=<4>
+Project: "aprapp"="..\..\apr\build\aprapp.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -30,7 +30,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "apriconv"="..\apr-iconv\apriconv.dsp" - Package Owner=<4>
+Project: "apriconv"="..\..\apr-iconv\apriconv.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -45,7 +45,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "aprutil"=".\aprutil.dsp" - Package Owner=<4>
+Project: "aprutil"="..\aprutil.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -66,7 +66,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libapr"="..\apr\libapr.dsp" - Package Owner=<4>
+Project: "libapr"="..\..\apr\libapr.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -78,7 +78,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libaprapp"="..\apr\build\libaprapp.dsp" - Package Owner=<4>
+Project: "libaprapp"="..\..\apr\build\libaprapp.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -93,7 +93,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libapriconv"="..\apr-iconv\libapriconv.dsp" - Package Owner=<4>
+Project: "libapriconv"="..\..\apr-iconv\libapriconv.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -108,25 +108,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libapriconv_ccs_modules"="..\apr-iconv\ccs\libapriconv_ccs_modules.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name libapr
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name libapriconv
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "libapriconv_ces_modules"="..\apr-iconv\ces\libapriconv_ces_modules.dsp" - Package Owner=<4>
+Project: "libapriconv_ccs_modules"="..\..\apr-iconv\ccs\libapriconv_ccs_modules.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -144,7 +126,25 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libaprutil"=".\libaprutil.dsp" - Package Owner=<4>
+Project: "libapriconv_ces_modules"="..\..\apr-iconv\ces\libapriconv_ces_modules.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libapr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libapriconv
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libaprutil"="..\libaprutil.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -174,7 +174,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "preaprapp"="..\apr\build\preaprapp.dsp" - Package Owner=<4>
+Project: "preaprapp"="..\..\apr\build\preaprapp.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -189,7 +189,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "preapriconv"="..\apr-iconv\build\preapriconv.dsp" - Package Owner=<4>
+Project: "preapriconv"="..\..\apr-iconv\build\preapriconv.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -204,7 +204,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "preaprutil"=".\build\preaprutil.dsp" - Package Owner=<4>
+Project: "preaprutil"="..\build\preaprutil.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -222,7 +222,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "prelibaprapp"="..\apr\build\prelibaprapp.dsp" - Package Owner=<4>
+Project: "prelibaprapp"="..\..\apr\build\prelibaprapp.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -237,7 +237,91 @@ Package=<4>
 
 ###############################################################################
 
-Project: "xml"=".\xml\expat\lib\xml.dsp" - Package Owner=<4>
+Project: "testdll"="..\..\apr\test\testdll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libapr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libaprapp
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "testlib"="..\..\apr\test\testlib.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name apr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name aprapp
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "testutildll"=".\testutildll.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libapr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libaprapp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libapriconv
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libaprutil
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "testutillib"=".\testutillib.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name apr
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name aprapp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name apriconv
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name aprutil
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "xml"="..\xml\expat\lib\xml.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

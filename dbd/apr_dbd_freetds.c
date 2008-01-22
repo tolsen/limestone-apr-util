@@ -528,7 +528,8 @@ static int dbd_freetds_end_transaction(apr_dbd_transaction_t *trans)
     return (trans->handle->err == SUCCEED) ? 0 : 1;
 }
 
-static DBPROCESS *freetds_open(apr_pool_t *pool, const char *params)
+static DBPROCESS *freetds_open(apr_pool_t *pool, const char *params,
+                               const char **error)
 {
     char *server = NULL;
     DBPROCESS *process;
@@ -543,12 +544,18 @@ static DBPROCESS *freetds_open(apr_pool_t *pool, const char *params)
     char *databaseName = NULL;
 
     /* FIXME - this uses malloc */
+    /* FIXME - pass error message back to the caller in case of failure */
     login = dblogin();
     if (login == NULL) {
         return NULL;
     }
     /* now set login properties */
     for (ptr = strchr(params, '='); ptr; ptr = strchr(ptr, '=')) {
+        /* don't dereference memory that may not belong to us */
+        if (ptr == params) {
+            ++ptr;
+            continue;
+        }
         for (key = ptr-1; isspace(*key); --key);
         klen = 0;
         while (isalpha(*key)) {
@@ -607,10 +614,12 @@ static DBPROCESS *freetds_open(apr_pool_t *pool, const char *params)
 
     return process;
 }
-static apr_dbd_t *dbd_freetds_open(apr_pool_t *pool, const char *params)
+static apr_dbd_t *dbd_freetds_open(apr_pool_t *pool, const char *params,
+                                   const char **error)
 {
     apr_dbd_t *sql;
-    DBPROCESS *process = freetds_open(pool, params);
+    /* FIXME - pass error message back to the caller in case of failure */
+    DBPROCESS *process = freetds_open(pool, params, error);
     if (process == NULL) {
         return NULL;
     }

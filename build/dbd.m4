@@ -443,6 +443,20 @@ AC_DEFUN([APU_CHECK_DBD_DSO], [
      test $apu_have_freetds = 1 && objs="$objs dbd/apr_dbd_freetds.lo"
      EXTRA_OBJECTS="$EXTRA_OBJECTS $objs"
 
+     # Use libtool *.la for mysql if available
+     if test $apu_have_mysql = 1; then
+       for flag in $LDADD_dbd_mysql
+       do
+         dir=`echo $flag | grep "^-L" | sed s:-L::`
+         if test "x$dir" != 'x'; then
+           if test -f "$dir/libmysqlclient_r.la"; then
+             LDADD_dbd_mysql=$dir/libmysqlclient_r.la
+             break
+           fi
+         fi
+       done
+     fi
+
      APRUTIL_LIBS="$APRUTIL_LIBS $LDADD_dbd_pgsql $LDADD_dbd_sqlite2 $LDADD_dbd_sqlite3 $LDADD_dbd_oracle $LDADD_dbd_mysql $LDADD_dbd_freetds"
      APRUTIL_EXPORT_LIBS="$APRUTIL_EXPORT_LIBS $LDADD_dbd_pgsql $LDADD_dbd_sqlite2 $LDADD_dbd_sqlite3 $LDADD_dbd_oracle $LDADD_dbd_mysql $LDADD_dbd_freetds"
   fi
