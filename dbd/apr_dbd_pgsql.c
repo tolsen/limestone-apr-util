@@ -231,14 +231,29 @@ static int dbd_pgsql_get_row(apr_pool_t *pool, apr_dbd_results_t *res,
         row = apr_palloc(pool, sizeof(apr_dbd_row_t));
         *rowp = row;
         row->res = res;
-        row->n = sequential ? 0 : rownum;
+        if ( sequential ) {
+            row->n = 0;
+        }
+        else {
+            if (rownum > 0) {
+                row->n = --rownum;
+            }
+            else {
+                return -1; /* invalid row */
+            }
+        }
     }
     else {
         if ( sequential ) {
             ++row->n;
         }
         else {
-            row->n = rownum;
+            if (rownum > 0) {
+                row->n = --rownum;
+            }
+            else {
+                return -1; /* invalid row */
+            }
         }
     }
 
@@ -1246,7 +1261,7 @@ static int dbd_pgsql_num_tuples(apr_dbd_results_t* res)
     }
 }
 
-APU_DECLARE_DATA const apr_dbd_driver_t apr_dbd_pgsql_driver = {
+APU_MODULE_DECLARE_DATA const apr_dbd_driver_t apr_dbd_pgsql_driver = {
     "pgsql",
     NULL,
     dbd_pgsql_native,

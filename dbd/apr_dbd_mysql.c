@@ -268,8 +268,11 @@ static int dbd_mysql_get_row(apr_pool_t *pool, apr_dbd_results_t *res,
 
     if (res->statement) {
         if (res->random) {
-            if (rownum >= 0) {
-                mysql_stmt_data_seek(res->statement, (my_ulonglong)rownum);
+            if (rownum > 0) {
+                mysql_stmt_data_seek(res->statement, (my_ulonglong) --rownum);
+            }
+            else {
+                return -1; /* invalid row */
             }
         }
         ret = mysql_stmt_fetch(res->statement);
@@ -287,8 +290,11 @@ static int dbd_mysql_get_row(apr_pool_t *pool, apr_dbd_results_t *res,
     }
     else {
         if (res->random) {
-            if (rownum >= 0) {
-                mysql_data_seek(res->res, (my_ulonglong) rownum);
+            if (rownum > 0) {
+                mysql_data_seek(res->res, (my_ulonglong) --rownum);
+            }
+            else {
+                return -1; /* invalid row */
             }
         }
         r = mysql_fetch_row(res->res);
@@ -1233,7 +1239,7 @@ static void dbd_mysql_init(apr_pool_t *pool)
     /* FIXME: this is a guess; find out what it really does */ 
     apr_pool_cleanup_register(pool, NULL, thread_end, apr_pool_cleanup_null);
 }
-APU_DECLARE_DATA const apr_dbd_driver_t apr_dbd_mysql_driver = {
+APU_MODULE_DECLARE_DATA const apr_dbd_driver_t apr_dbd_mysql_driver = {
     "mysql",
     dbd_mysql_init,
     dbd_mysql_native,

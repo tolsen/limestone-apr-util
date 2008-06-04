@@ -147,6 +147,11 @@ extern "C" {
 #define APR_LDAP_CERT_TYPE_PFX      13
 /** PKCS#12 encoded private key */
 #define APR_LDAP_KEY_TYPE_PFX       14
+/** Openldap directory full of base64-encoded cert 
+ * authorities with hashes in corresponding .0 directory
+ */
+#define APR_LDAP_CA_TYPE_CACERTDIR_BASE64 15
+
 
 /**
  * Certificate structure.
@@ -210,11 +215,11 @@ struct apr_ldap_opt_tls_cert_t {
  * @param result_err The apr_ldap_err_t structure contained detailed results
  *        of the operation.
  */
-APU_DECLARE(int) apr_ldap_get_option(apr_pool_t *pool,
-                                     LDAP *ldap,
-                                     int option,
-                                     void *outvalue,
-                                     apr_ldap_err_t **result_err);
+APU_DECLARE_LDAP(int) apr_ldap_get_option(apr_pool_t *pool,
+                                          LDAP *ldap,
+                                          int option,
+                                          void *outvalue,
+                                          apr_ldap_err_t **result_err);
 
 /**
  * APR LDAP set option function
@@ -232,11 +237,11 @@ APU_DECLARE(int) apr_ldap_get_option(apr_pool_t *pool,
  * @param result_err The apr_ldap_err_t structure contained detailed results
  *        of the operation.
  */
-APU_DECLARE(int) apr_ldap_set_option(apr_pool_t *pool,
-                                     LDAP *ldap,
-                                     int option,
-                                     const void *invalue,
-                                     apr_ldap_err_t **result_err);
+APU_DECLARE_LDAP(int) apr_ldap_set_option(apr_pool_t *pool,
+                                          LDAP *ldap,
+                                          int option,
+                                          const void *invalue,
+                                          apr_ldap_err_t **result_err);
 
 #ifdef __cplusplus
 }

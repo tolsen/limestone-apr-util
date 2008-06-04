@@ -3,7 +3,7 @@
 # ALL_TESTS
 #   test modules invoked through the abts suite (./testall)
 # OTHER_PROGRAMS
-#   programs such as sockperf, that have to be invoked in a special sequence
+#   programs such as sendfile, that have to be invoked in a special sequence
 #   or with special parameters
 
 # Windows Specific;
@@ -68,13 +68,10 @@ CLEAN_DATA = manyfile.bin testfile.txt data\sqlite*.db
 CLEAN_BUILDDIRS = Debug Release LibD LibR 9x x64
 
 PROGRAMS = \
-	$(OUTDIR)\testall.exe \
-	$(OUTDIR)\testssl.exe
+	$(OUTDIR)\testall.exe
 
 OTHER_PROGRAMS = \
-	$(OUTDIR)\dbd.exe \
-	$(OUTDIR)\echod.exe \
-	$(OUTDIR)\sockperf.exe
+	$(OUTDIR)\dbd.exe
 
 # bring in rules.mk for standard functionality
 ALL: $(PROGRAMS) $(OTHER_PROGRAMS)
@@ -138,21 +135,6 @@ $(OUTDIR)\dbd.exe: $(INTDIR)\dbd.obj $(PROGRAM_DEPENDENCIES)
 	@if exist "$@.manifest" \
 	    mt.exe -manifest "$@.manifest" -outputresource:$@;1
 
-$(OUTDIR)\testssl.exe: $(INTDIR)\testssl.obj $(PROGRAM_DEPENDENCIES)
-	$(LD) $(LDFLAGS) /out:"$@" $** $(LD_LIBS)
-	@if exist "$@.manifest" \
-	    mt.exe -manifest "$@.manifest" -outputresource:$@;1
-
-$(OUTDIR)\echod.exe: $(INTDIR)\echod.obj $(PROGRAM_DEPENDENCIES)
-	$(LD) $(LDFLAGS) /out:"$@" $** $(LD_LIBS)
-	@if exist "$@.manifest" \
-	    mt.exe -manifest "$@.manifest" -outputresource:$@;1
-
-$(OUTDIR)\sockperf.exe: $(INTDIR)\sockperf.obj $(PROGRAM_DEPENDENCIES)
-	$(LD) $(LDFLAGS) /out:"$@" $** $(LD_LIBS)
-	@if exist "$@.manifest" \
-	    mt.exe -manifest "$@.manifest" -outputresource:$@;1
-
 
 cleandata:
 	@for %f in ($(CLEAN_DATA)) do @if EXIST %f del /f %f
@@ -166,10 +148,10 @@ cleanall:
 	    @if EXIST %d\. rmdir /s /q %d
 
 
-!IF "$(MODEL)" == "static"
-PATH=$(OUTDIR);..\$(OUTDIR);$(API_PATH)\$(OUTDIR);$(APR_PATH)\$(APROUTDIR);$(PATH)
-APR_ICONV1_PATH=$(API_PATH)\$(OUTDIR)\iconv
+!IF "$(MODEL)" != "static"
+PATH=$(OUTDIR);..\$(OUTDIR);..\ldap\$(OUTDIR);..\dbd\$(OUTDIR);$(API_PATH)\$(OUTDIR);$(APR_PATH)\$(APROUTDIR);$(PATH)
 !ENDIF
+APR_ICONV1_PATH=$(API_PATH)\$(OUTDIR)\iconv
 
 check: $(PROGRAMS) $(OTHER_PROGRAMS)
 	@for %p in ($(PROGRAMS)) do @( \

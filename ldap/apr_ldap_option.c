@@ -23,6 +23,12 @@
 
 #include "apr.h"
 #include "apu.h"
+#include "apu_config.h"
+
+#if APU_DSO_BUILD
+#define APU_DSO_LDAP_BUILD
+#endif
+
 #include "apr_ldap.h"
 #include "apr_errno.h"
 #include "apr_pools.h"
@@ -42,11 +48,11 @@ static void option_set_tls(apr_pool_t *pool, LDAP *ldap, const void *invalue,
  * This function gets option values from a given LDAP session if
  * one was specified.
  */
-APU_DECLARE(int) apr_ldap_get_option(apr_pool_t *pool,
-                                     LDAP *ldap,
-                                     int option,
-                                     void *outvalue,
-                                     apr_ldap_err_t **result_err)
+APU_DECLARE_LDAP(int) apr_ldap_get_option(apr_pool_t *pool,
+                                          LDAP *ldap,
+                                          int option,
+                                          void *outvalue,
+                                          apr_ldap_err_t **result_err)
 {
     apr_ldap_err_t *result;
 
@@ -80,11 +86,11 @@ APU_DECLARE(int) apr_ldap_get_option(apr_pool_t *pool,
  * will try and apply legacy functions to achieve the same effect,
  * depending on the platform.
  */
-APU_DECLARE(int) apr_ldap_set_option(apr_pool_t *pool,
-                                     LDAP *ldap,
-                                     int option,
-                                     const void *invalue,
-                                     apr_ldap_err_t **result_err)
+APU_DECLARE_LDAP(int) apr_ldap_set_option(apr_pool_t *pool,
+                                          LDAP *ldap,
+                                          int option,
+                                          const void *invalue,
+                                          apr_ldap_err_t **result_err)
 {
     apr_ldap_err_t *result;
 
@@ -160,9 +166,11 @@ APU_DECLARE(int) apr_ldap_set_option(apr_pool_t *pool,
         break;
 
     case APR_LDAP_OPT_REFHOPLIMIT:
-#if APR_HAS_OPENLDAP_LDAPSDK
-        /* Setting this option is not supported by current versions of OpenLDAP,
-         * OpenLDAP does support the concept though and defaults to 5.
+#if !defined(LDAP_OPT_REFHOPLIMIT) || APR_HAS_NOVELL_LDAPSDK
+        /* If the LDAP_OPT_REFHOPLIMIT symbol is missing, assume that the
+         * particular LDAP library has a reasonable default. So far certain
+         * versions of the OpenLDAP SDK miss this symbol (but default to 5),
+         * and the Microsoft SDK misses the symbol (the default is not known).
          */
         result->rc = LDAP_SUCCESS;
 #else
@@ -325,7 +333,8 @@ static void option_set_tls(apr_pool_t *pool, LDAP *ldap, const void *invalue,
     /* Microsoft SDK */
 #if APR_HAS_MICROSOFT_LDAPSDK
     if (tls == APR_LDAP_NONE) {
-        result->rc = ldap_set_option(ldap, LDAP_OPT_SSL, LDAP_OPT_OFF);
+        ULONG ul = (ULONG) LDAP_OPT_OFF;
+        result->rc = ldap_set_option(ldap, LDAP_OPT_SSL, &ul);
         if (result->rc != LDAP_SUCCESS) {
             result->reason = "LDAP: an attempt to set LDAP_OPT_SSL off "
                              "failed.";
@@ -333,7 +342,8 @@ static void option_set_tls(apr_pool_t *pool, LDAP *ldap, const void *invalue,
         }
     }
     else if (tls == APR_LDAP_SSL) {
-        result->rc = ldap_set_option(ldap, LDAP_OPT_SSL, LDAP_OPT_ON);
+        ULONG ul = (ULONG) LDAP_OPT_ON;
+        result->rc = ldap_set_option(ldap, LDAP_OPT_SSL, &ul);
         if (result->rc != LDAP_SUCCESS) {
             result->reason = "LDAP: an attempt to set LDAP_OPT_SSL on "
                              "failed.";
@@ -586,6 +596,13 @@ static void option_set_cert(apr_pool_t *pool, LDAP *ldap,
                                          (void *)ents[i].path);
             result->msg = ldap_err2string(result->rc);
             break;
+#ifdef LDAP_OPT_X_TLS_CACERTDIR
+        case APR_LDAP_CA_TYPE_CACERTDIR_BASE64:
+            result->rc = ldap_set_option(ldap, LDAP_OPT_X_TLS_CACERTDIR,
+                                         (void *)ents[i].path);
+            result->msg = ldap_err2string(result->rc);
+            break;
+#endif
         default:
             result->rc = -1;
             result->reason = "LDAP: The OpenLDAP SDK only understands the "

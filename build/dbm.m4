@@ -1,10 +1,10 @@
 dnl -------------------------------------------------------- -*- autoconf -*-
-dnl Copyright 2002-2005 The Apache Software Foundation or its licensors, as
-dnl applicable.
-dnl
-dnl Licensed under the Apache License, Version 2.0 (the "License");
-dnl you may not use this file except in compliance with the License.
-dnl You may obtain a copy of the License at
+dnl Licensed to the Apache Software Foundation (ASF) under one or more
+dnl contributor license agreements.  See the NOTICE file distributed with
+dnl this work for additional information regarding copyright ownership.
+dnl The ASF licenses this file to You under the Apache License, Version 2.0
+dnl (the "License"); you may not use this file except in compliance with
+dnl the License.  You may obtain a copy of the License at
 dnl
 dnl     http://www.apache.org/licenses/LICENSE-2.0
 dnl
@@ -671,8 +671,10 @@ AC_DEFUN([APU_CHECK_DBM], [
     elif test "$withval" = "no"; then
       apu_have_gdbm=0
     else
-      CPPFLAGS="-I$withval/include"
-      LIBS="-L$withval/lib "
+      saved_cppflags="$CPPFLAGS"
+      saved_ldflags="$LDFLAGS"
+      CPPFLAGS="$CPPFLAGS -I$withval/include"
+      LDFLAGS="$LDFLAGS -L$withval/lib "
 
       AC_MSG_CHECKING(checking for gdbm in $withval)
       AC_CHECK_HEADER(gdbm.h, AC_CHECK_LIB(gdbm, gdbm_open, [apu_have_gdbm=1]))
@@ -680,6 +682,8 @@ AC_DEFUN([APU_CHECK_DBM], [
         APR_ADDTO(APRUTIL_LDFLAGS, [-L$withval/lib])
         APR_ADDTO(APRUTIL_INCLUDES, [-I$withval/include])
       fi
+      CPPFLAGS="$saved_cppflags"
+      LDFLAGS="$saved_ldflags"
     fi
   ])
 

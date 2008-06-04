@@ -54,8 +54,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /opt:ref
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"Release\libaprutil-1.dll" /pdb:"Release\libaprutil-1.pdb" /implib:"Release\libaprutil-1.lib" /MACHINE:X86 /opt:ref
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /opt:ref
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"Release\libaprutil-1.dll" /pdb:"Release\libaprutil-1.pdb" /implib:"Release\libaprutil-1.lib" /MACHINE:X86 /opt:ref
 # Begin Special Build Tool
 TargetPath=Release\libaprutil-1.dll
 SOURCE="$(InputPath)"
@@ -86,8 +86,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"Debug\libaprutil-1.dll" /pdb:"Debug\libaprutil-1.pdb" /implib:"Debug\libaprutil-1.lib" /MACHINE:X86
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"Debug\libaprutil-1.dll" /pdb:"Debug\libaprutil-1.pdb" /implib:"Debug\libaprutil-1.lib" /MACHINE:X86
 # Begin Special Build Tool
 TargetPath=Debug\libaprutil-1.dll
 SOURCE="$(InputPath)"
@@ -118,8 +118,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /opt:ref
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Release\libaprutil-1.dll" /pdb:"x64\Release\libaprutil-1.pdb" /implib:"x64\Release\libaprutil-1.lib" /MACHINE:X64 /opt:ref
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /opt:ref
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Release\libaprutil-1.dll" /pdb:"x64\Release\libaprutil-1.pdb" /implib:"x64\Release\libaprutil-1.lib" /MACHINE:X64 /opt:ref
 # Begin Special Build Tool
 TargetPath=x64\Release\libaprutil-1.dll
 SOURCE="$(InputPath)"
@@ -150,8 +150,8 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib wldap32.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Debug\libaprutil-1.dll" /pdb:"x64\Debug\libaprutil-1.pdb" /implib:"x64\Debug\libaprutil-1.lib" /MACHINE:X64
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib /nologo /base:"0x6EE60000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Debug\libaprutil-1.dll" /pdb:"x64\Debug\libaprutil-1.pdb" /implib:"x64\Debug\libaprutil-1.lib" /MACHINE:X64
 # Begin Special Build Tool
 TargetPath=x64\Debug\libaprutil-1.dll
 SOURCE="$(InputPath)"
@@ -259,26 +259,32 @@ SOURCE=.\dbd\apr_dbd.c
 # Begin Source File
 
 SOURCE=.\dbd\apr_dbd_freetds.c
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
 SOURCE=.\dbd\apr_dbd_mysql.c
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
 SOURCE=.\dbd\apr_dbd_oracle.c
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
 SOURCE=.\dbd\apr_dbd_pgsql.c
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
 SOURCE=.\dbd\apr_dbd_sqlite2.c
+# PROP Exclude_From_Build 1
 # End Source File
 # Begin Source File
 
 SOURCE=.\dbd\apr_dbd_sqlite3.c
+# PROP Exclude_From_Build 1
 # End Source File
 # End Group
 # Begin Group "dbm"
@@ -323,15 +329,26 @@ SOURCE=.\hooks\apr_hooks.c
 # Begin Source File
 
 SOURCE=.\ldap\apr_ldap_init.c
+# PROP Exclude_From_Build 1
+# End Source File
+# Begin Source File
+
+SOURCE=.\ldap\apr_ldap_option.c
+# PROP Exclude_From_Build 1
+# End Source File 
+# Begin Source File
+
+SOURCE=.\ldap\apr_ldap_rebind.c
+# PROP Exclude_From_Build 1
+# End Source File
+# Begin Source File
+
+SOURCE=.\ldap\apr_ldap_stub.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\ldap\apr_ldap_url.c
 # End Source File
-# Begin Source File
-
-SOURCE=.\ldap\apr_ldap_option.c
-# End Source File 
 # End Group
 # Begin Group "memcache"
 
@@ -347,6 +364,10 @@ SOURCE=.\memcache\apr_memcache.c
 # Begin Source File
 
 SOURCE=.\misc\apr_date.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\misc\apu_dso.c
 # End Source File
 # Begin Source File
 
@@ -399,26 +420,6 @@ SOURCE=.\dbm\sdbm\sdbm_private.h
 # Begin Source File
 
 SOURCE=.\dbm\sdbm\sdbm_tune.h
-# End Source File
-# End Group
-# Begin Group "ssl"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl_openssl.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl_socket.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl_winsock.c
 # End Source File
 # End Group
 # Begin Group "strmatch"
@@ -795,10 +796,6 @@ SOURCE=.\include\apr_sdbm.h
 # Begin Source File
 
 SOURCE=.\include\apr_sha1.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\apr_ssl.h
 # End Source File
 # Begin Source File
 

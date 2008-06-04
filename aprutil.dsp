@@ -291,11 +291,19 @@ SOURCE=.\ldap\apr_ldap_init.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ldap\apr_ldap_url.c
+SOURCE=.\ldap\apr_ldap_option.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ldap\apr_ldap_option.c
+SOURCE=.\ldap\apr_ldap_rebind.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ldap\apr_ldap_stub.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ldap\apr_ldap_url.c
 # End Source File
 # End Group
 # Begin Group "memcache"
@@ -312,6 +320,10 @@ SOURCE=.\memcache\apr_memcache.c
 # Begin Source File
 
 SOURCE=.\misc\apr_date.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\misc\apu_dso.c
 # End Source File
 # Begin Source File
 
@@ -364,26 +376,6 @@ SOURCE=.\dbm\sdbm\sdbm_private.h
 # Begin Source File
 
 SOURCE=.\dbm\sdbm\sdbm_tune.h
-# End Source File
-# End Group
-# Begin Group "ssl"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl_openssl.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl_socket.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ssl\apr_ssl_winsock.c
 # End Source File
 # End Group
 # Begin Group "strmatch"
@@ -760,10 +752,6 @@ SOURCE=.\include\apr_sdbm.h
 # Begin Source File
 
 SOURCE=.\include\apr_sha1.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\apr_ssl.h
 # End Source File
 # Begin Source File
 
