@@ -87,9 +87,22 @@ static int find_prefix(apr_xml_parser *parser, const char *prefix)
     */
     for (; elem; elem = elem->parent) {
 	apr_xml_ns_scope *ns_scope = elem->ns_scope;
+        int i = 0;
 
-	for (ns_scope = elem->ns_scope; ns_scope; ns_scope = ns_scope->next) {
+        if (ns_scope == NULL && elem->ns_parent)
+            ns_scope = APR_ARRAY_IDX(elem->ns_parent, i++, apr_xml_ns_scope *);
+
+        while (ns_scope) {
 	    if (strcmp(prefix, ns_scope->prefix) == 0) {
+                apr_xml_elem *iter = parser->cur_elem;
+                for (; iter != elem; iter = iter->parent) {
+                    const apr_xml_ns_scope **p_nsscope;
+                    if (iter->ns_parent == NULL)
+                        iter->ns_parent = 
+                          apr_array_make(parser->p, 5, sizeof(const apr_xml_ns_scope *));
+                    p_nsscope = apr_array_push(iter->ns_parent);
+                    *p_nsscope = ns_scope;
+                }
 		if (ns_scope->emptyURI) {
 		    /*
 		    ** It is possible to set the default namespace to an
@@ -102,7 +115,15 @@ static int find_prefix(apr_xml_parser *parser, const char *prefix)
 
 		return ns_scope->ns;
 	    }
-	}
+            if (i == 0) {
+                ns_scope = ns_scope->next;
+                if (ns_scope == NULL && elem->ns_parent)
+                    ns_scope = APR_ARRAY_IDX(elem->ns_parent, i++, apr_xml_ns_scope *);
+            }
+            else if (i < elem->ns_parent->nelts)
+                ns_scope = APR_ARRAY_IDX(elem->ns_parent, i++, apr_xml_ns_scope *);
+            else ns_scope = NULL;
+        }
     }
 
     /*
@@ -251,13 +272,16 @@ static void start_handler(void *userdata, const char *name, const char **attrs)
 	 * namespace URI has been specified at some point.
 	 */
 	elem->ns = find_prefix(parser, "");
+        elem->prefix = ""; /* default namespace; use NULL here too? */
     }
     else if (APR_XML_NS_IS_RESERVED(elem->name)) {
 	elem->ns = APR_XML_NS_NONE;
+        elem->prefix = NULL;
     }
     else {
 	*colon = '\0';
 	elem->ns = find_prefix(parser, elem->name);
+        elem->prefix = elem->name;
 	elem->name = colon + 1;
 
 	if (APR_XML_NS_IS_ERROR(elem->ns)) {
@@ -282,13 +306,16 @@ static void start_handler(void *userdata, const char *name, const char **attrs)
 	     * we place them into the "no namespace" category.
 	     */
 	    attr->ns = APR_XML_NS_NONE;
+            attr->prefix = NULL;
 	}
 	else if (APR_XML_NS_IS_RESERVED(attr->name)) {
 	    attr->ns = APR_XML_NS_NONE;
+            attr->prefix = NULL;
 	}
 	else {
 	    *colon = '\0';
 	    attr->ns = find_prefix(parser, attr->name);
+            attr->prefix = attr->name;
 	    attr->name = colon + 1;
 
 	    if (APR_XML_NS_IS_ERROR(attr->ns)) {
@@ -610,12 +637,13 @@ static apr_size_t text_size(const apr_text *t)
 }
 
 static apr_size_t elem_size(const apr_xml_elem *elem, int style,
-                            apr_array_header_t *namespaces, int *ns_map)
+                            const apr_array_header_t *namespaces, int *ns_map)
 {
     apr_size_t size;
 
     if (style == APR_XML_X2T_FULL || style == APR_XML_X2T_FULL_NS_LANG) {
 	const apr_xml_attr *attr;
+        const apr_xml_ns_scope *ns_scope;
 
 	size = 0;
 
@@ -626,12 +654,14 @@ static apr_size_t elem_size(const apr_xml_elem *elem, int style,
 	    ** The outer element will contain xmlns:ns%d="%s" attributes
 	    ** and an xml:lang attribute, if applicable.
 	    */
-
-	    for (i = namespaces->nelts; i--;) {
-		/* compute size of: ' xmlns:ns%d="%s"' */
-		size += (9 + APR_XML_NS_LEN(i) + 2 +
-			 strlen(APR_XML_GET_URI_ITEM(namespaces, i)) + 1);
-	    }
+            for (i = 0; i < (elem->ns_parent ? elem->ns_parent->nelts : 0); i++) {
+                ns_scope = APR_ARRAY_IDX(elem->ns_parent, i, const apr_xml_ns_scope *);
+                const char *ns_uri = ns_scope->emptyURI ? "" :
+                  APR_XML_GET_URI_ITEM(namespaces, ns_scope->ns);
+                if (*ns_scope->prefix == '\0')
+                    size += 7 + strlen(ns_uri);
+                else size += 10 + strlen(ns_scope->prefix) + strlen(ns_uri);
+            }
 
 	    if (elem->lang != NULL) {
 		/* compute size of: ' xml:lang="%s"' */
@@ -639,15 +669,23 @@ static apr_size_t elem_size(const apr_xml_elem *elem, int style,
 	    }
 	}
 
-	if (elem->ns == APR_XML_NS_NONE) {
+        for (ns_scope = elem->ns_scope; ns_scope; ns_scope = ns_scope->next) {
+            const char *ns_uri = ns_scope->emptyURI ? "" :
+              APR_XML_GET_URI_ITEM(namespaces, ns_scope->ns);
+            if (*ns_scope->prefix == '\0')
+                /* ' xmlns="%s"' */
+                size += 8 + strlen(ns_uri) + 1;
+            /* ' xmlns:%s="%s"' */
+            else size += 7 + strlen(ns_scope->prefix) + 2 + strlen(ns_uri) + 1;
+        }
+
+	if (elem->prefix == NULL || *elem->prefix == '\0') {
 	    /* compute size of: <%s> */
 	    size += 1 + strlen(elem->name) + 1;
 	}
 	else {
-	    int ns = ns_map ? ns_map[elem->ns] : elem->ns;
-
-	    /* compute size of: <ns%d:%s> */
-	    size += 3 + APR_XML_NS_LEN(ns) + 1 + strlen(elem->name) + 1;
+	    /* compute size of: <%s:%s> */
+	    size += 1 + strlen(elem->prefix) + 1 + strlen(elem->name) + 1;
 	}
 
 	if (APR_XML_ELEM_IS_EMPTY(elem)) {
@@ -664,14 +702,13 @@ static apr_size_t elem_size(const apr_xml_elem *elem, int style,
 	}
 
 	for (attr = elem->attr; attr; attr = attr->next) {
-	    if (attr->ns == APR_XML_NS_NONE) {
+	    if (attr->prefix == NULL) {
 		/* compute size of: ' %s="%s"' */
 		size += 1 + strlen(attr->name) + 2 + strlen(attr->value) + 1;
 	    }
 	    else {
-		/* compute size of: ' ns%d:%s="%s"' */
-                int ns = ns_map ? ns_map[attr->ns] : attr->ns;
-                size += 3 + APR_XML_NS_LEN(ns) + 1 + strlen(attr->name) + 2 + strlen(attr->value) + 1;
+		/* compute size of: ' %s:%s="%s"' */
+		size += 1 + strlen(attr->prefix) + 1 + strlen(attr->name) + 2 + strlen(attr->value) + 1;
 	    }
 	}
 
@@ -701,7 +738,7 @@ static apr_size_t elem_size(const apr_xml_elem *elem, int style,
 
     for (elem = elem->first_child; elem; elem = elem->next) {
 	/* the size of the child element plus the CDATA that follows it */
-	size += (elem_size(elem, APR_XML_X2T_FULL, NULL, ns_map) +
+	size += (elem_size(elem, APR_XML_X2T_FULL, namespaces, ns_map) +
 		 text_size(elem->following_cdata.first));
     }
 
@@ -719,31 +756,28 @@ static char *write_text(char *s, const apr_text *t)
 }
 
 static char *write_elem(char *s, const apr_xml_elem *elem, int style,
-			apr_array_header_t *namespaces, int *ns_map)
+			const apr_array_header_t *namespaces, int *ns_map)
 {
     const apr_xml_elem *child;
     apr_size_t len;
-    int ns;
 
     if (style == APR_XML_X2T_FULL || style == APR_XML_X2T_FULL_NS_LANG) {
 	int empty = APR_XML_ELEM_IS_EMPTY(elem);
 	const apr_xml_attr *attr;
+        const apr_xml_ns_scope *ns_scope;
 
-	if (elem->ns == APR_XML_NS_NONE) {
+	if (elem->prefix == NULL || *elem->prefix == '\0') {
 	    len = sprintf(s, "<%s", elem->name);
 	}
-	else {
-	    ns = ns_map ? ns_map[elem->ns] : elem->ns;
-	    len = sprintf(s, "<ns%d:%s", ns, elem->name);
-	}
+	else len = sprintf(s, "<%s:%s", elem->prefix, elem->name);
 	s += len;
 
 	for (attr = elem->attr; attr; attr = attr->next) {
-	    if (attr->ns == APR_XML_NS_NONE)
+	    if (attr->prefix == NULL)
 		len = sprintf(s, " %s=\"%s\"", attr->name, attr->value);
-            else {
-                ns = ns_map ? ns_map[attr->ns] : attr->ns;
-                len = sprintf(s, " ns%d:%s=\"%s\"", ns, attr->name, attr->value);
+	    else {
+                len = sprintf(s, " %s:%s=\"%s\"", attr->prefix, 
+                                  attr->name, attr->value);
             }
 	    s += len;
 	}
@@ -759,14 +793,27 @@ static char *write_elem(char *s, const apr_xml_elem *elem, int style,
 
 	/* add namespace definitions, if required */
 	if (style == APR_XML_X2T_FULL_NS_LANG) {
-	    int i;
+            int i;
 
-	    for (i = namespaces->nelts; i--;) {
-		len = sprintf(s, " xmlns:ns%d=\"%s\"", i,
-			      APR_XML_GET_URI_ITEM(namespaces, i));
-		s += len;
-	    }
+            for (i = 0; i < (elem->ns_parent ? elem->ns_parent->nelts : 0); i++) {
+                ns_scope = APR_ARRAY_IDX(elem->ns_parent, i, const apr_xml_ns_scope *);
+                const char *ns_uri = ns_scope->emptyURI ? "" :
+                  APR_XML_GET_URI_ITEM(namespaces, ns_scope->ns);
+                if (*ns_scope->prefix == '\0')
+                    len = sprintf(s, " xmlns=\"%s\"", ns_uri);
+                else len = sprintf(s, " xmlns:%s=\"%s\"", ns_scope->prefix, ns_uri);
+                s += len;
+            }
 	}
+
+        for (ns_scope = elem->ns_scope; ns_scope; ns_scope = ns_scope->next) {
+            const char *ns_uri = ns_scope->emptyURI ? "" :
+              APR_XML_GET_URI_ITEM(namespaces, ns_scope->ns);
+            if (*ns_scope->prefix == '\0')
+                len = sprintf(s, " xmlns=\"%s\"", ns_uri);
+            else len = sprintf(s, " xmlns:%s=\"%s\"", ns_scope->prefix, ns_uri);
+            s += len;
+        }
 
 	/* no more to do. close it up and go. */
 	if (empty) {
@@ -791,17 +838,16 @@ static char *write_elem(char *s, const apr_xml_elem *elem, int style,
     s = write_text(s, elem->first_cdata.first);
 
     for (child = elem->first_child; child; child = child->next) {
-	s = write_elem(s, child, APR_XML_X2T_FULL, NULL, ns_map);
+	s = write_elem(s, child, APR_XML_X2T_FULL, namespaces, ns_map);
 	s = write_text(s, child->following_cdata.first);
     }
 
     if (style == APR_XML_X2T_FULL || style == APR_XML_X2T_FULL_NS_LANG) {
-	if (elem->ns == APR_XML_NS_NONE) {
+	if (elem->prefix == NULL || *elem->prefix == '\0') {
 	    len = sprintf(s, "</%s>", elem->name);
 	}
 	else {
-	    ns = ns_map ? ns_map[elem->ns] : elem->ns;
-	    len = sprintf(s, "</ns%d:%s>", ns, elem->name);
+	    len = sprintf(s, "</%s:%s>", elem->prefix, elem->name);
 	}
 	s += len;
     }
@@ -844,13 +890,13 @@ APU_DECLARE(void) apr_xml_quote_elem(apr_pool_t *p, apr_xml_elem *elem)
 
 /* convert an element to a text string */
 APU_DECLARE(void) apr_xml_to_text(apr_pool_t * p, const apr_xml_elem *elem,
-                                  int style, apr_array_header_t *namespaces,
+                                  int style, const apr_array_header_t *namespaces,
                                   int *ns_map, const char **pbuf,
                                   apr_size_t *psize)
 {
     /* get the exact size, plus a null terminator */
     apr_size_t size = elem_size(elem, style, namespaces, ns_map) + 1;
-    char *s = apr_palloc(p, size);
+    char *s = apr_pcalloc(p, size);
 
     (void) write_elem(s, elem, style, namespaces, ns_map);
     s[size - 1] = '\0';

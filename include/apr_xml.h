@@ -148,6 +148,8 @@ typedef struct apr_xml_doc apr_xml_doc;
 struct apr_xml_attr {
     /** attribute name */
     const char *name;
+    /** namespace prefix */
+    const char *prefix;
     /** index into namespace array */
     int ns;
 
@@ -162,6 +164,8 @@ struct apr_xml_attr {
 struct apr_xml_elem {
     /** element name */
     const char *name;
+    /** namespace prefix */
+    const char *prefix;
     /** index into namespace array */
     int ns;
     /** xml:lang for attrs/contents */
@@ -186,6 +190,8 @@ struct apr_xml_elem {
     struct apr_xml_elem *last_child;
     /** namespaces scoped by this elem */
     struct apr_xml_ns_scope *ns_scope;
+    /** namespaces that are defined in a parent but required at this level */
+    struct apr_array_header_t *ns_parent;
 
     /* used by modules during request processing */
     /** Place for modules to store private data */
@@ -283,7 +289,7 @@ APU_DECLARE(char *) apr_xml_parser_geterror(apr_xml_parser *parser,
  * @param psize Size of the converted text
  */
 APU_DECLARE(void) apr_xml_to_text(apr_pool_t *p, const apr_xml_elem *elem,
-                                  int style, apr_array_header_t *namespaces,
+                                  int style, const apr_array_header_t *namespaces,
                                   int *ns_map, const char **pbuf,
                                   apr_size_t *psize);
 
