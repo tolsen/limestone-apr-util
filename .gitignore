@@ -46,3 +46,4 @@ xml/expat/config.h
 xml/expat/config.h.in
 xml/expat/conftools/ltmain.sh
 xml/expat/lib/expat.h
+.lime-config-generated.mk
