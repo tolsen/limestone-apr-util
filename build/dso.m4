@@ -22,11 +22,18 @@ AC_DEFUN([APU_CHECK_UTIL_DSO], [
 
   AC_ARG_ENABLE([util-dso], 
      APR_HELP_STRING([--disable-util-dso],
-       [disable DSO build of modular components (dbd, ldap)]))
+       [disable DSO build of modular components (dbd, dbm, ldap)]))
 
   if test "$enable_util_dso" = "no"; then
-     # Statically link the DBD drivers:
+     apu_dso_build="0"
+  else
+     apr_h="`$apr_config --includedir`/apr.h"
+     apu_dso_build="`awk '/^#define APR_HAS_DSO/ { print @S|@3; }' $apr_h`"
+  fi
 
+  if test "$apu_dso_build" = "0"; then
+
+     # Statically link the drivers:
      objs=
      test $apu_have_oracle = 1 && objs="$objs dbd/apr_dbd_oracle.lo"
      test $apu_have_pgsql = 1 && objs="$objs dbd/apr_dbd_pgsql.lo"
@@ -34,6 +41,10 @@ AC_DEFUN([APU_CHECK_UTIL_DSO], [
      test $apu_have_sqlite2 = 1 && objs="$objs dbd/apr_dbd_sqlite2.lo"
      test $apu_have_sqlite3 = 1 && objs="$objs dbd/apr_dbd_sqlite3.lo"
      test $apu_have_freetds = 1 && objs="$objs dbd/apr_dbd_freetds.lo"
+     test $apu_have_odbc = 1 && objs="$objs dbd/apr_dbd_odbc.lo"
+     test $apu_have_db = 1 && objs="$objs dbm/apr_dbm_berkeleydb.lo"
+     test $apu_have_gdbm = 1 && objs="$objs dbm/apr_dbm_gdbm.lo"
+     test $apu_have_ndbm = 1 && objs="$objs dbm/apr_dbm_ndbm.lo"
      test $apu_has_ldap = 1 && objs="$objs ldap/apr_ldap_init.lo"
      test $apu_has_ldap = 1 && objs="$objs ldap/apr_ldap_option.lo"
      test $apu_has_ldap = 1 && objs="$objs ldap/apr_ldap_rebind.lo"
@@ -53,13 +64,16 @@ AC_DEFUN([APU_CHECK_UTIL_DSO], [
        done
      fi
 
-     APRUTIL_LIBS="$APRUTIL_LIBS $LDADD_dbd_pgsql $LDADD_dbd_sqlite2 $LDADD_dbd_sqlite3 $LDADD_dbd_oracle $LDADD_dbd_mysql $LDADD_dbd_freetds"
+     APRUTIL_LIBS="$APRUTIL_LIBS $LDADD_dbd_pgsql $LDADD_dbd_sqlite2 $LDADD_dbd_sqlite3 $LDADD_dbd_oracle $LDADD_dbd_mysql $LDADD_dbd_freetds $LDADD_dbd_odbc"
+     APRUTIL_LIBS="$APRUTIL_LIBS $LDADD_dbm_db $LDADD_dbm_gdbm $LDADD_dbm_ndbm"
      APRUTIL_LIBS="$APRUTIL_LIBS $LDADD_ldap"
-     APRUTIL_EXPORT_LIBS="$APRUTIL_EXPORT_LIBS $LDADD_dbd_pgsql $LDADD_dbd_sqlite2 $LDADD_dbd_sqlite3 $LDADD_dbd_oracle $LDADD_dbd_mysql $LDADD_dbd_freetds"
+     APRUTIL_EXPORT_LIBS="$APRUTIL_EXPORT_LIBS $LDADD_dbd_pgsql $LDADD_dbd_sqlite2 $LDADD_dbd_sqlite3 $LDADD_dbd_oracle $LDADD_dbd_mysql $LDADD_dbd_freetds $LDADD_dbd_odbc"
+     APRUTIL_EXPORT_LIBS="$APRUTIL_EXPORT_LIBS $LDADD_dbm_db $LDADD_dbm_gdbm $LDADD_dbm_ndbm"
      APRUTIL_EXPORT_LIBS="$APRUTIL_EXPORT_LIBS $LDADD_ldap"
+
   else
-     AC_DEFINE([APU_DSO_BUILD], 1, [Define if modular components are built as DSOs])
-     
+
+     # Build the drivers as loadable modules:
      dsos=
      test $apu_have_oracle = 1 && dsos="$dsos dbd/apr_dbd_oracle.la"
      test $apu_have_pgsql = 1 && dsos="$dsos dbd/apr_dbd_pgsql.la"
@@ -67,8 +81,18 @@ AC_DEFUN([APU_CHECK_UTIL_DSO], [
      test $apu_have_sqlite2 = 1 && dsos="$dsos dbd/apr_dbd_sqlite2.la"
      test $apu_have_sqlite3 = 1 && dsos="$dsos dbd/apr_dbd_sqlite3.la"
      test $apu_have_freetds = 1 && dsos="$dsos dbd/apr_dbd_freetds.la"
+     test $apu_have_odbc = 1 && dsos="$dsos dbd/apr_dbd_odbc.la"
+     test $apu_have_db = 1 && dsos="$dsos dbm/apr_dbm_db.la"
+     test $apu_have_gdbm = 1 && dsos="$dsos dbm/apr_dbm_gdbm.la"
+     test $apu_have_ndbm = 1 && dsos="$dsos dbm/apr_dbm_ndbm.la"
      test $apu_has_ldap = 1 && dsos="$dsos ldap/apr_ldap.la"
 
-     APU_MODULES="$APU_MODULES $dsos"
+     if test -n "$dsos"; then
+        APU_MODULES="$APU_MODULES $dsos"
+     fi
+
   fi
+
+  AC_DEFINE_UNQUOTED([APU_DSO_BUILD], $apu_dso_build,
+     [Define to 1 if modular components are built as DSOs])
 ])

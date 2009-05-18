@@ -34,9 +34,17 @@
 #
 # Provide a DBD_LIST argument after configuring LIB and INCLUDE with
 # the SDK paths of the corresponding client support libraries.
+# ODBC is always built on Windows, so it does not get included in DBD_LIST
 # Note that at this time, none of these are supported on win32, per say.
 #
 #     DBD_LIST="sqlite3 pgsql oracle mysql freetds"
+#
+# Provide a DBM_LIST argument after configuring LIB and INCLUDE with
+# the SDK paths of the corresponding database support libraries.  Right
+# now only db has been configured, gdbm and ndbm require additional study.
+# Note that at this time, none of these are supported on win32, per say.
+#
+#     DBM_LIST="db gdbm"
 #
 # For example;
 #
@@ -77,6 +85,7 @@ APU_PATH=..\apr-util
 !MESSAGE APU_PATH    = $(APU_PATH)  (apr-util)
 !MESSAGE PREFIX      = $(PREFIX)  (install path)
 !MESSAGE DBD_LIST    = $(DBD_LIST)
+!MESSAGE DBM_LIST    = $(DBM_LIST)
 
 # Utility and Translation things, nothing here for the user
 #
@@ -187,19 +196,25 @@ buildall:
 	cd ..\..\..
 	 $(MAKE) $(MAKEOPT) -f aprutil.mak     CFG="aprutil - $(ARCH)" RECURSE=0 $(CTARGET)
 	 $(MAKE) $(MAKEOPT) -f libaprutil.mak  CFG="libaprutil - $(ARCH)" RECURSE=0 $(CTARGET)
-        cd ldap
+	cd ldap
 	 $(MAKE) $(MAKEOPT) -f apr_ldap.mak    CFG="apr_ldap - $(ARCH)" RECURSE=0 $(CTARGET)
-        cd ..
-        cd dbd
-	  for %d in ($(DBD_LIST)) do \
+	cd ..
+	cd dbd
+	  for %d in (odbc $(DBD_LIST)) do \
 	    $(MAKE) $(MAKEOPT) -f apr_dbd_%d.mak CFG="apr_dbd_%d - $(ARCH)" RECURSE=0 $(CTARGET)
-        cd ..
+	cd ..
+	cd dbm
+	  for %d in ($(DBM_LIST)) do \
+	    $(MAKE) $(MAKEOPT) -f apr_dbm_%d.mak CFG="apr_dbm_%d - $(ARCH)" RECURSE=0 $(CTARGET)
+	cd ..
 
 !ELSEIF $(USESLN) == 1
 
 clean:
-	-for %d in ($(DBD_LIST)) do \
+	-for %d in (odbc $(DBD_LIST)) do \
 	  devenv aprutil.sln /useenv /clean "$(SLNARCH)" /project apr_dbd_%d
+	-for %d in ($(DBM_LIST)) do \
+	  devenv aprutil.sln /useenv /clean "$(SLNARCH)" /project apr_dbm_%d
 	-devenv aprutil.sln /useenv /clean "$(SLNARCH)" /project apr_ldap
 	-devenv aprutil.sln /useenv /clean "$(SLNARCH)" /project libaprutil
 	-devenv aprutil.sln /useenv /clean "$(SLNARCH)" /project aprutil
@@ -220,15 +235,19 @@ buildall:
 	devenv aprutil.sln /useenv /build "$(SLNARCH)" /project aprutil
 	devenv aprutil.sln /useenv /build "$(SLNARCH)" /project libaprutil
 	devenv aprutil.sln /useenv /build "$(SLNARCH)" /project apr_ldap
-	for %d in ($(DBD_LIST)) do \
+	for %d in (odbc $(DBD_LIST)) do \
 	  devenv aprutil.sln /useenv /build "$(SLNARCH)" /project apr_dbd_%d
+	for %d in ($(DBM_LIST)) do \
+	  devenv aprutil.sln /useenv /build "$(SLNARCH)" /project apr_dbm_%d
 
 !ELSE
 #	$(USEDSP) == 1
 
 clean:
-	-for %d in ($(DBD_LIST)) do \
+	-for %d in (odbc $(DBD_LIST)) do \
 	  msdev aprutil.dsw /USEENV /MAKE "apr_dbd_%d - $(ARCH)" /CLEAN
+	-for %d in ($(DBM_LIST)) do \
+	  msdev aprutil.dsw /USEENV /MAKE "apr_dbm_%d - $(ARCH)" /CLEAN
 	-msdev aprutil.dsw /USEENV /MAKE "apr_ldap - $(ARCH)" /CLEAN
 	-msdev aprutil.dsw /USEENV /MAKE "libaprutil - $(ARCH)" /CLEAN
 	-msdev aprutil.dsw /USEENV /MAKE "aprutil - $(ARCH)" /CLEAN
@@ -249,8 +268,10 @@ buildall:
 	@msdev aprutil.dsw /USEENV /MAKE "libapr_app - $(ARCH)"
 	@msdev aprutil.dsw /USEENV /MAKE "libaprutil - $(ARCH)"
 	@msdev aprutil.dsw /USEENV /MAKE "apr_ldap - $(ARCH)"
-	@for %d in ($(DBD_LIST)) do \
+	@for %d in (odbc $(DBD_LIST)) do \
 	  msdev aprutil.dsw /USEENV /MAKE "apr_dbd_%d - $(ARCH)"
+	@for %d in ($(DBM_LIST)) do \
+	  msdev aprutil.dsw /USEENV /MAKE "apr_dbm_%d - $(ARCH)"
 
 !ENDIF
 
@@ -307,9 +328,13 @@ install:
 	copy $(APU_PATH)\$(ARCHPATH)\libaprutil-1.pdb	"$(PREFIX)\bin\" <.y
 	copy $(APU_PATH)\ldap\$(ARCHPATH)\apr_ldap-1.dll "$(PREFIX)\bin\" <.y
 	copy $(APU_PATH)\ldap\$(ARCHPATH)\apr_ldap-1.pdb "$(PREFIX)\bin\" <.y
-	for %d in ($(DBD_LIST)) do ( \
+	for %d in (odbc $(DBD_LIST)) do ( \
 	  copy $(APU_PATH)\dbd\$(ARCHPATH)\apr_dbd_%d-1.dll "$(PREFIX)\bin\" <.y && \
 	  copy $(APU_PATH)\dbd\$(ARCHPATH)\apr_dbd_%d-1.pdb "$(PREFIX)\bin\" <.y \
+	)
+	for %d in ($(DBM_LIST)) do ( \
+	  copy $(APU_PATH)\dbm\$(ARCHPATH)\apr_dbm_%d-1.dll "$(PREFIX)\bin\" <.y && \
+	  copy $(APU_PATH)\dbm\$(ARCHPATH)\apr_dbm_%d-1.pdb "$(PREFIX)\bin\" <.y \
 	)
 	xcopy $(API_PATH)\$(ARCHPATH)\iconv\*.so  "$(PREFIX)\bin\iconv\" /d < .a
 	xcopy $(API_PATH)\$(ARCHPATH)\iconv\*.pdb "$(PREFIX)\bin\iconv\" /d < .a

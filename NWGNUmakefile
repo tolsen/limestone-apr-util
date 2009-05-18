@@ -13,6 +13,12 @@ SUBDIRS += \
 	$(EOLIST) 
 endif
 
+ifdef WITH_APR_DBM
+SUBDIRS += \
+	dbm \
+	$(EOLIST) 
+endif
+
 #
 # Get the 'head' of the build environment.  This includes default targets and
 # paths to tools
@@ -246,7 +252,6 @@ FILES_lib_objs = \
 	$(OBJDIR)/apr_date.o \
 	$(OBJDIR)/apr_dbm.o \
 	$(OBJDIR)/apr_dbd.o \
-	$(OBJDIR)/apr_dbm_berkeleydb.o \
 	$(OBJDIR)/apr_dbm_sdbm.o \
 	$(OBJDIR)/apu_dso.o \
 	$(OBJDIR)/apr_hooks.o \

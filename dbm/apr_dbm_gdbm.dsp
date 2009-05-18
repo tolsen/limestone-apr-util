@@ -1,26 +1,26 @@
-# Microsoft Developer Studio Project File - Name="apr_dbd_sqlite2" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="apr_dbm_gdbm" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=apr_dbd_sqlite2 - Win32 Release
+CFG=apr_dbm_gdbm - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "apr_dbd_sqlite2.mak".
+!MESSAGE NMAKE /f "apr_dbm_gdbm.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "apr_dbd_sqlite2.mak" CFG="apr_dbd_sqlite2 - Win32 Release"
+!MESSAGE NMAKE /f "apr_dbm_gdbm.mak" CFG="apr_dbm_gdbm - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "apr_dbd_sqlite2 - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "apr_dbd_sqlite2 - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "apr_dbd_sqlite2 - x64 Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "apr_dbd_sqlite2 - x64 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "apr_dbm_gdbm - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "apr_dbm_gdbm - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "apr_dbm_gdbm - x64 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "apr_dbm_gdbm - x64 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -31,7 +31,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "apr_dbd_sqlite2 - Win32 Release"
+!IF  "$(CFG)" == "apr_dbm_gdbm - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -45,25 +45,25 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FD /c
-# ADD CPP /nologo /MD /W3 /Zi /O2 /Oy- /I "../include" /I "../../apr/include" /I "../include/private" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_SQLITE2=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbd_sqlite2_src" /FD /c
+# ADD CPP /nologo /MD /W3 /Zi /O2 /Oy- /I "../include" /I "../../apr/include" /I "../include/private" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_GDBM=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbm_gdbm_src" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /fo"Release/apr_dbd_sqlite2-1.res" /d DLL_NAME="apr_dbd_sqlite2" /d "NDEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
+# ADD RSC /l 0x409 /fo"Release/apr_dbm_gdbm-1.res" /d DLL_NAME="apr_dbm_gdbm" /d "NDEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /opt:ref
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"Release\apr_dbd_sqlite2-1.dll" /pdb:"Release\apr_dbd_sqlite2-1.pdb" /implib:"Release\apr_dbd_sqlite2-1.lib" /MACHINE:X86 /opt:ref
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /opt:ref
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"Release\apr_dbm_gdbm-1.dll" /pdb:"Release\apr_dbm_gdbm-1.pdb" /implib:"Release\apr_dbm_gdbm-1.lib" /MACHINE:X86 /opt:ref
 # Begin Special Build Tool
-TargetPath=Release\apr_dbd_sqlite2-1.dll
+TargetPath=Release\apr_dbm_gdbm-1.dll
 SOURCE="$(InputPath)"
 PostBuild_Desc=Embed .manifest
 PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).manifest -outputresource:$(TargetPath);2
 # End Special Build Tool
 
-!ELSEIF  "$(CFG)" == "apr_dbd_sqlite2 - Win32 Debug"
+!ELSEIF  "$(CFG)" == "apr_dbm_gdbm - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -77,25 +77,25 @@ PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).ma
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FD /EHsc /c
-# ADD CPP /nologo /MDd /W3 /Zi /Od /I "../include" /I "../../apr/include" /I "../include/private" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_SQLITE2=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbd_sqlite2_src" /FD /EHsc /c
+# ADD CPP /nologo /MDd /W3 /Zi /Od /I "../include" /I "../../apr/include" /I "../include/private" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_GDBM=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbm_gdbm_src" /FD /EHsc /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /fo"Debug/apr_dbd_sqlite2-1.res" /d DLL_NAME="apr_dbd_sqlite2" /d "_DEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
+# ADD RSC /l 0x409 /fo"Debug/apr_dbm_gdbm-1.res" /d DLL_NAME="apr_dbm_gdbm" /d "_DEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"Debug\apr_dbd_sqlite2-1.dll" /pdb:"Debug\apr_dbd_sqlite2-1.pdb" /implib:"Debug\apr_dbd_sqlite2-1.lib" /MACHINE:X86
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"Debug\apr_dbm_gdbm-1.dll" /pdb:"Debug\apr_dbm_gdbm-1.pdb" /implib:"Debug\apr_dbm_gdbm-1.lib" /MACHINE:X86
 # Begin Special Build Tool
-TargetPath=Debug\apr_dbd_sqlite2-1.dll
+TargetPath=Debug\apr_dbm_gdbm-1.dll
 SOURCE="$(InputPath)"
 PostBuild_Desc=Embed .manifest
 PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).manifest -outputresource:$(TargetPath);2
 # End Special Build Tool
 
-!ELSEIF  "$(CFG)" == "apr_dbd_sqlite2 - x64 Release"
+!ELSEIF  "$(CFG)" == "apr_dbm_gdbm - x64 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -109,25 +109,25 @@ PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).ma
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /FD /c
-# ADD CPP /nologo /MD /W3 /Zi /O2 /Oy- /I "../include" /I "../../apr/include" /I "../include/private" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_SQLITE2=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbd_sqlite2_src" /FD /c
+# ADD CPP /nologo /MD /W3 /Zi /O2 /Oy- /I "../include" /I "../../apr/include" /I "../include/private" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_GDBM=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbm_gdbm_src" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /fo"x64/Release/apr_dbd_sqlite2-1.res" /d DLL_NAME="apr_dbd_sqlite2" /d "NDEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
+# ADD RSC /l 0x409 /fo"x64/Release/apr_dbm_gdbm-1.res" /d DLL_NAME="apr_dbm_gdbm" /d "NDEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /opt:ref
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Release\apr_dbd_sqlite2-1.dll" /pdb:"x64\Release\apr_dbd_sqlite2-1.pdb" /implib:"x64\Release\apr_dbd_sqlite2-1.lib" /MACHINE:X64 /opt:ref
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /opt:ref
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Release\apr_dbm_gdbm-1.dll" /pdb:"x64\Release\apr_dbm_gdbm-1.pdb" /implib:"x64\Release\apr_dbm_gdbm-1.lib" /MACHINE:X64 /opt:ref
 # Begin Special Build Tool
-TargetPath=x64\Release\apr_dbd_sqlite2-1.dll
+TargetPath=x64\Release\apr_dbm_gdbm-1.dll
 SOURCE="$(InputPath)"
 PostBuild_Desc=Embed .manifest
 PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).manifest -outputresource:$(TargetPath);2
 # End Special Build Tool
 
-!ELSEIF  "$(CFG)" == "apr_dbd_sqlite2 - x64 Debug"
+!ELSEIF  "$(CFG)" == "apr_dbm_gdbm - x64 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -141,19 +141,19 @@ PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).ma
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /FD /EHsc /c
-# ADD CPP /nologo /MDd /W3 /Zi /Od /I "../include" /I "../../apr/include" /I "../include/private" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_SQLITE2=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbd_sqlite2_src" /FD /EHsc /c
+# ADD CPP /nologo /MDd /W3 /Zi /Od /I "../include" /I "../../apr/include" /I "../include/private" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "APU_DSO_MODULE_BUILD" /D APU_HAVE_GDBM=1 /Fo"$(INTDIR)\" /Fd"$(INTDIR)\apr_dbm_gdbm_src" /FD /EHsc /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o /win32 "NUL"
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /fo"x64/Debug/apr_dbd_sqlite2-1.res" /d DLL_NAME="apr_dbd_sqlite2" /d "_DEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
+# ADD RSC /l 0x409 /fo"x64/Debug/apr_dbm_gdbm-1.res" /d DLL_NAME="apr_dbm_gdbm" /d "_DEBUG" /d "APU_VERSION_ONLY" /I "../include" /I "../../apr/include"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug
-# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib sqlite2.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Debug\apr_dbd_sqlite2-1.dll" /pdb:"x64\Debug\apr_dbd_sqlite2-1.pdb" /implib:"x64\Debug\apr_dbd_sqlite2-1.lib" /MACHINE:X64
+# ADD BASE LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug
+# ADD LINK32 kernel32.lib advapi32.lib ws2_32.lib mswsock.lib ole32.lib libgdbm.lib /nologo /base:"0x6EF10000" /subsystem:windows /dll /incremental:no /debug /out:"x64\Debug\apr_dbm_gdbm-1.dll" /pdb:"x64\Debug\apr_dbm_gdbm-1.pdb" /implib:"x64\Debug\apr_dbm_gdbm-1.lib" /MACHINE:X64
 # Begin Special Build Tool
-TargetPath=x64\Debug\apr_dbd_sqlite2-1.dll
+TargetPath=x64\Debug\apr_dbm_gdbm-1.dll
 SOURCE="$(InputPath)"
 PostBuild_Desc=Embed .manifest
 PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).manifest -outputresource:$(TargetPath);2
@@ -163,16 +163,16 @@ PostBuild_Cmds=if exist $(TargetPath).manifest mt.exe -manifest $(TargetPath).ma
 
 # Begin Target
 
-# Name "apr_dbd_sqlite2 - Win32 Release"
-# Name "apr_dbd_sqlite2 - Win32 Debug"
-# Name "apr_dbd_sqlite2 - x64 Release"
-# Name "apr_dbd_sqlite2 - x64 Debug"
+# Name "apr_dbm_gdbm - Win32 Release"
+# Name "apr_dbm_gdbm - Win32 Debug"
+# Name "apr_dbm_gdbm - x64 Release"
+# Name "apr_dbm_gdbm - x64 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\apr_dbd_sqlite2.c
+SOURCE=.\apr_dbm_gdbm.c
 # End Source File
 # End Group
 # Begin Group "Public Header Files"
@@ -180,12 +180,16 @@ SOURCE=.\apr_dbd_sqlite2.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\include\apr_dbd.h
+SOURCE=..\include\apr_dbm.h
 # End Source File
 # End Group
 # Begin Group "Internal Header Files"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\include\private\apu_dbm_private.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\include\private\apu_config.h
@@ -197,6 +201,10 @@ SOURCE=..\include\private\apu_dbd_internal.h
 # Begin Source File
 
 SOURCE=..\include\private\apu_internal.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\private\apu_select_dbm.h
 # End Source File
 # End Group
 # Begin Source File
