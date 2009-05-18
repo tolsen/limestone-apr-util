@@ -187,8 +187,12 @@ AC_DEFUN([APU_FIND_LDAPLIB], [
   if test ${apu_has_ldap} != "1"; then
     ldaplib=$1
     extralib=$2
-    unset ac_cv_lib_${ldaplib}_ldap_init
-    unset ac_cv_lib_${ldaplib}___ldap_init
+    # Clear the cache entry for subsequent APU_FIND_LDAPLIB invocations.
+    changequote(,)
+    ldaplib_cache_id="`echo $ldaplib | sed -e 's/[^a-zA-Z0-9_]/_/g'`"
+    changequote([,])
+    unset ac_cv_lib_${ldaplib_cache_id}_ldap_init
+    unset ac_cv_lib_${ldaplib_cache_id}___ldap_init
     AC_CHECK_LIB(${ldaplib}, ldap_init, 
       [
         LDADD_ldap="-l${ldaplib} ${extralib}"
@@ -231,6 +235,18 @@ apu_has_ldap_zos="0"
 apu_has_ldap_other="0"
 LDADD_ldap=""
 
+AC_ARG_WITH(lber,[  --with-lber=library     lber library to use],
+  [
+    if test "$withval" = "yes"; then
+      apu_liblber_name="lber"
+    else
+      apu_liblber_name="$withval"
+    fi
+  ],
+  [
+    apu_liblber_name="lber"
+  ])
+
 AC_ARG_WITH(ldap-include,[  --with-ldap-include=path  path to ldap include files with trailing slash])
 AC_ARG_WITH(ldap-lib,[  --with-ldap-lib=path    path to ldap lib file])
 AC_ARG_WITH(ldap,[  --with-ldap=library     ldap library to use],
@@ -269,7 +285,8 @@ dnl The iPlanet C SDK 5.0 is as yet untested...
     fi
 
     test ${apu_has_ldap} != "1" && AC_MSG_ERROR(could not find an LDAP library)
-    AC_CHECK_LIB(lber, ber_init)
+    AC_CHECK_LIB($apu_liblber_name, ber_init,
+      [LDADD_ldap="${LDADD_ldap} -l${apu_liblber_name}"])
 
     AC_CHECK_HEADERS(lber.h, lber_h=["#include <lber.h>"])
 
@@ -355,6 +372,36 @@ dnl The iPlanet C SDK 5.0 is as yet untested...
     LDFLAGS=$save_ldflags
     LIBS=$save_libs
   ])
+
+if test "$apu_has_ldap_openldap" = "1"; then
+    save_cppflags="$CPPFLAGS"
+    save_ldflags="$LDFLAGS"
+    save_libs="$LIBS"
+
+    CPPFLAGS="$CPPFLAGS $APRUTIL_INCLUDES"
+    LDFLAGS="$LDFLAGS $APRUTIL_LDFLAGS"
+    AC_CACHE_CHECK([style of ldap_set_rebind_proc routine], ac_cv_ldap_set_rebind_proc_style,
+    APR_TRY_COMPILE_NO_WARNING([
+    #ifdef HAVE_LBER_H
+    #include <lber.h>
+    #endif
+    #ifdef HAVE_LDAP_H
+    #include <ldap.h>
+    #endif
+    ], [
+    int tmp = ldap_set_rebind_proc((LDAP *)0, (LDAP_REBIND_PROC *)0, (void *)0);
+    /* use tmp to suppress the warning */
+    tmp=0;
+    ], ac_cv_ldap_set_rebind_proc_style=three, ac_cv_ldap_set_rebind_proc_style=two))
+
+    if test "$ac_cv_ldap_set_rebind_proc_style" = "three"; then
+        AC_DEFINE(LDAP_SET_REBIND_PROC_THREE, 1, [Define if ldap_set_rebind_proc takes three arguments])
+    fi
+
+    CPPFLAGS="$save_cppflags"
+    LDFLAGS="$save_ldflags"
+    LIBS="$save_libs"
+fi
 
 AC_SUBST(ldap_h)
 AC_SUBST(lber_h)

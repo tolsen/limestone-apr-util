@@ -10,11 +10,7 @@ SUBDIRS = \
 # paths to tools
 #
 
-ifndef EnvironmentDefined
 include $(APR_WORK)\build\NWGNUhead.inc
-endif
-
-#include $(APR)\build\NWGNUcustom.inc
 
 #
 # build this level's files
@@ -23,25 +19,11 @@ endif
 # Make sure all needed macro's are defined
 #
 
-# LINK_STATIC = 1
-
-# for now defined here - should finally go into build/NWGNUenvironment.inc
-MYSQL_INC = $(MYSQLSDK)/include
-MYSQL_IMP = $(MYSQLSDK)/lib/libmysql.imp
-MYSQL_LIB = $(MYSQLSDK)/lib/libmysqlclient_r.lib $(MYSQLSDK)/lib/libz.lib
-MYSQL_NLM = libmysql
-
 #
 # These directories will be at the beginning of the include list, followed by
 # INCDIRS
 #
 XINCDIRS	+= \
-			$(APR)/include/arch/netware \
-			$(APR)/include \
-			$(APRUTIL)/include \
-			$(APRUTIL)/include/private \
-			$(APR) \
-			$(MYSQL_INC) \
 			$(EOLIST)
 
 #
@@ -54,9 +36,6 @@ XCFLAGS		+= \
 # These defines will come after DEFINES
 #
 XDEFINES	+= \
-			-DAPU_DSO_MODULE_BUILD \
-			-DAPU_HAVE_MYSQL=1 \
-			-DHAVE_MYSQL_H \
 			$(EOLIST)
 
 #
@@ -64,12 +43,6 @@ XDEFINES	+= \
 #
 XLFLAGS		+= \
 			$(EOLIST)
-
-ifdef LINK_STATIC
-XLFLAGS		+= \
-			-l $(MYSQLSDK)/lib \
-			$(EOLIST)
-endif
 
 #
 # These values will be appended to the correct variables based on the value of
@@ -122,19 +95,19 @@ endif
 # This is used by the link 'name' directive to name the nlm.  If left blank
 # TARGET_nlm (see below) will be used.
 #
-NLM_NAME	= dbdmysql
+NLM_NAME	=
 
 #
 # This is used by the link '-desc ' directive.
 # If left blank, NLM_NAME will be used.
 #
-NLM_DESCRIPTION	= Apache Portability Runtime Library $(VERSION_STR) DBD MySQL Driver Module
+NLM_DESCRIPTION	=
 
 #
 # This is used by the '-threadname' directive.  If left blank,
 # NLM_NAME Thread will be used.
 #
-NLM_THREAD_NAME	= dbdmysql
+NLM_THREAD_NAME	=
 
 #
 # If this is specified, it will override VERSION value in
@@ -145,18 +118,18 @@ NLM_VERSION	=
 #
 # If this is specified, it will override the default of 64K
 #
-NLM_STACK_SIZE	= 8192
+NLM_STACK_SIZE	=
 
 
 #
 # If this is specified it will be used by the link '-entry' directive
 #
-NLM_ENTRY_SYM	= _LibCPrelude
+NLM_ENTRY_SYM	=
 
 #
 # If this is specified it will be used by the link '-exit' directive
 #
-NLM_EXIT_SYM	= _LibCPostlude
+NLM_EXIT_SYM	=
 
 #
 # If this is specified it will be used by the link '-check' directive
@@ -166,7 +139,7 @@ NLM_CHECK_SYM	=
 #
 # If these are specified it will be used by the link '-flags' directive
 #
-NLM_FLAGS	= AUTOUNLOAD, PSEUDOPREEMPTION
+NLM_FLAGS	=
 
 #
 # If this is specified it will be linked in with the XDCData option in the def
@@ -179,8 +152,14 @@ XDCDATA		=
 # If there is an NLM target, put it here
 #
 TARGET_nlm = \
-	$(OBJDIR)\$(NLM_NAME).nlm \
 	$(EOLIST)
+
+ifeq "$(APU_HAVE_DB)" "1"
+TARGET_nlm += $(OBJDIR)/dbmdb.nlm $(OBJDIR)/dbmdb.nlm $(EOLIST)
+endif
+ifeq "$(APU_HAVE_GDBM)" "1"
+TARGET_nlm += $(OBJDIR)/dbmgdbm.nlm $(OBJDIR)/dbmgdbm.nlm $(EOLIST)
+endif
 
 #
 # If there is an LIB target, put it here
@@ -193,7 +172,6 @@ TARGET_lib = \
 # Paths must all use the '/' character
 #
 FILES_nlm_objs = \
-	$(OBJDIR)/apr_dbd_mysql.o \
 	$(EOLIST)
 
 #
@@ -201,29 +179,14 @@ FILES_nlm_objs = \
 # These will be added as a library command in the link.opt file.
 #
 FILES_nlm_libs = \
-	libcpre.o \
 	$(EOLIST)
-
-ifeq ($(LINK_STATIC),1)
-FILES_nlm_libs += \
-	$(MYSQL_LIB) \
-	$(EOLIST)
-endif
 
 #
 # These are the modules that the above NLM target depends on to load.
 # These will be added as a module command in the link.opt file.
 #
 FILES_nlm_modules = \
-	aprlib \
-	libc \
 	$(EOLIST)
-
-ifneq ($(LINK_STATIC),1)
-FILES_nlm_modules += \
-	$(MYSQL_NLM) \
-	$(EOLIST)
-endif
 
 #
 # If the nlm has a msg file, put it's path here
@@ -244,21 +207,12 @@ FILE_nlm_copyright =
 # Any additional imports go here
 #
 FILES_nlm_Ximports = \
-	@$(APR)/aprlib.imp \
-	@libc.imp \
 	$(EOLIST)
-
-ifneq ($(LINK_STATIC),1)
-FILES_nlm_Ximports += \
-	@$(MYSQL_IMP) \
-	$(EOLIST)
-endif
 
 #
 # Any symbols exported to here
 #
 FILES_nlm_exports = \
-	apr_dbd_mysql_driver \
 	$(EOLIST)
 
 #
@@ -280,7 +234,8 @@ nlms :: libs $(TARGET_nlm)
 # Updated this target to create necessary directories and copy files to the
 # correct place.  (See $(AP_WORK)\build\NWGNUhead.inc for examples)
 #
-install :: nlms FORCE
+install :: nlms $(INSTDIRS) FORCE
+	copy $(OBJDIR)\*.nlm $(INSTALLBASE)
 
 #
 # Any specialized rules here
@@ -292,6 +247,5 @@ install :: nlms FORCE
 #
 
 include $(APR_WORK)\build\NWGNUtail.inc
-
 
 

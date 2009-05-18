@@ -26,10 +26,10 @@ endif
 # LINK_STATIC = 1
 
 # for now defined here - should finally go into build/NWGNUenvironment.inc
-MYSQL_INC = $(MYSQLSDK)/include
-MYSQL_IMP = $(MYSQLSDK)/lib/libmysql.imp
-MYSQL_LIB = $(MYSQLSDK)/lib/libmysqlclient_r.lib $(MYSQLSDK)/lib/libz.lib
-MYSQL_NLM = libmysql
+GDBM_INC = $(GDBMSDK)/inc
+GDBM_IMP = $(GDBMSDK)/imp/libgdbm.imp
+GDBM_LIB = $(GDBMSDK)/lib/libgdbm.lib
+GDBM_NLM = libgdbm
 
 #
 # These directories will be at the beginning of the include list, followed by
@@ -41,7 +41,7 @@ XINCDIRS	+= \
 			$(APRUTIL)/include \
 			$(APRUTIL)/include/private \
 			$(APR) \
-			$(MYSQL_INC) \
+			$(GDBM_INC) \
 			$(EOLIST)
 
 #
@@ -55,8 +55,7 @@ XCFLAGS		+= \
 #
 XDEFINES	+= \
 			-DAPU_DSO_MODULE_BUILD \
-			-DAPU_HAVE_MYSQL=1 \
-			-DHAVE_MYSQL_H \
+			-DAPU_HAVE_GDBM=1 \
 			$(EOLIST)
 
 #
@@ -67,7 +66,7 @@ XLFLAGS		+= \
 
 ifdef LINK_STATIC
 XLFLAGS		+= \
-			-l $(MYSQLSDK)/lib \
+			-l $(GDBMSDK)/lib \
 			$(EOLIST)
 endif
 
@@ -122,19 +121,19 @@ endif
 # This is used by the link 'name' directive to name the nlm.  If left blank
 # TARGET_nlm (see below) will be used.
 #
-NLM_NAME	= dbdmysql
+NLM_NAME	= dbmgdbm
 
 #
 # This is used by the link '-desc ' directive.
 # If left blank, NLM_NAME will be used.
 #
-NLM_DESCRIPTION	= Apache Portability Runtime Library $(VERSION_STR) DBD MySQL Driver Module
+NLM_DESCRIPTION	= Apache Portability Runtime Library $(VERSION_STR) GDBM Driver Module
 
 #
 # This is used by the '-threadname' directive.  If left blank,
 # NLM_NAME Thread will be used.
 #
-NLM_THREAD_NAME	= dbdmysql
+NLM_THREAD_NAME	= dbmgdbm
 
 #
 # If this is specified, it will override VERSION value in
@@ -193,7 +192,7 @@ TARGET_lib = \
 # Paths must all use the '/' character
 #
 FILES_nlm_objs = \
-	$(OBJDIR)/apr_dbd_mysql.o \
+	$(OBJDIR)/apr_dbm_gdbm.o \
 	$(EOLIST)
 
 #
@@ -206,7 +205,7 @@ FILES_nlm_libs = \
 
 ifeq ($(LINK_STATIC),1)
 FILES_nlm_libs += \
-	$(MYSQL_LIB) \
+	$(GDBM_LIB) \
 	$(EOLIST)
 endif
 
@@ -221,7 +220,7 @@ FILES_nlm_modules = \
 
 ifneq ($(LINK_STATIC),1)
 FILES_nlm_modules += \
-	$(MYSQL_NLM) \
+	$(GDBM_NLM) \
 	$(EOLIST)
 endif
 
@@ -250,7 +249,7 @@ FILES_nlm_Ximports = \
 
 ifneq ($(LINK_STATIC),1)
 FILES_nlm_Ximports += \
-	@$(MYSQL_IMP) \
+	@$(GDBM_IMP) \
 	$(EOLIST)
 endif
 
@@ -258,7 +257,7 @@ endif
 # Any symbols exported to here
 #
 FILES_nlm_exports = \
-	apr_dbd_mysql_driver \
+	apr_dbm_type_gdbm \
 	$(EOLIST)
 
 #
