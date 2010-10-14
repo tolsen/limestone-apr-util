@@ -47,4 +47,5 @@ libtool
 xml/expat/config.h
 xml/expat/config.h.in
 xml/expat/conftools/ltmain.sh
+xml/expat/expat_config.h.in
 xml/expat/lib/expat.h
